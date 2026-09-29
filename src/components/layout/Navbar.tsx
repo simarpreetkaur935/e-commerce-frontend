@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Link,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 import api from "../../api/axios";
 
@@ -15,33 +14,48 @@ const Navbar = () => {
       !!localStorage.getItem("accessToken")
     );
 
-  const navigate = useNavigate();
+  const [profile, setProfile] = useState<{
+    name: string;
+    avatar?: string;
+  } | null>(null);
+
   const location = useLocation();
 
-  // Check login status
+  // =========================
+  // CHECK LOGIN STATUS
+  // =========================
+
   useEffect(() => {
     setIsLoggedIn(
       !!localStorage.getItem("accessToken")
     );
   }, [location.pathname]);
 
-  // Logout
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
-    } catch (error: unknown) {
-      console.error(
-        "Logout Error:",
-        error
-      );
-    } finally {
-      localStorage.removeItem("accessToken");
+  // =========================
+  // GET LOGGED-IN USER
+  // =========================
 
-      setIsLoggedIn(false);
-
-      navigate("/login");
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setProfile(null);
+      return;
     }
-  };
+
+    api
+      .get("/users/me")
+      .then((response) => {
+        if (response.data.success) {
+          setProfile(response.data.user);
+        }
+      })
+      .catch((error: any) => {
+        console.error(
+          "Get Navbar Profile Error:",
+          error.response?.data?.message ||
+            error.message
+        );
+      });
+  }, [isLoggedIn]);
 
   return (
     <>
@@ -85,8 +99,6 @@ const Navbar = () => {
 
           <div className="flex flex-1 justify-end items-center gap-2">
 
-            {/* Search input */}
-
             {showSearch && (
               <input
                 type="text"
@@ -95,8 +107,6 @@ const Navbar = () => {
                 className="w-full max-w-md px-4 py-2 text-black bg-white rounded outline-none"
               />
             )}
-
-            {/* Search Button */}
 
             <button
               type="button"
@@ -110,16 +120,41 @@ const Navbar = () => {
 
           </div>
 
-          {/* Login / Logout */}
+          {/* =========================
+              PROFILE / LOGIN
+          ========================= */}
 
           {isLoggedIn ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="hover:text-gray-300"
+            <Link
+              to="/profile"
+              className="flex items-center gap-2 hover:text-gray-300"
             >
-              Logout
-            </button>
+              {/* Profile Circle */}
+
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+
+                {profile?.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-lg font-semibold text-gray-700">
+                    {profile?.name
+                      ?.charAt(0)
+                      .toUpperCase() || "U"}
+                  </span>
+                )}
+
+              </div>
+
+              {/* Profile Name */}
+
+              <span className="hidden md:block">
+                {profile?.name || "Profile"}
+              </span>
+            </Link>
           ) : (
             <Link
               to="/login"
@@ -129,7 +164,9 @@ const Navbar = () => {
             </Link>
           )}
 
-          {/* Wishlist */}
+          {/* =========================
+              WISHLIST
+          ========================= */}
 
           <Link
             to="/wishlist"
@@ -138,7 +175,9 @@ const Navbar = () => {
             Wishlist
           </Link>
 
-          {/* Cart */}
+          {/* =========================
+              CART
+          ========================= */}
 
           <Link
             to="/cart"

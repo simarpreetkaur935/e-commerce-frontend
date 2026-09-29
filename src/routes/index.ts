@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../components/layout/ MainLayout";
 import Home from "../pages/Home";
-import { homeLoader } from "../utils/Loaders";
+import { homeLoader, profileLoader } from "../utils/Loaders";
 import authRoutes from "./auth";
 import ProductDetails from "../pages/ProductDetails";
 import {productDetailsLoader}from "../utils/Loaders";
@@ -11,6 +11,8 @@ import Wishlist from "../pages/Wishlist";
 import { wishlistLoader } from "../utils/Loaders";
 import Cart from "../pages/Cart";
 import {cartLoader} from "../utils/Loaders";
+import Profile from "../pages/Profile";
+
 
 const routes = createBrowserRouter([
   {
@@ -36,6 +38,11 @@ const routes = createBrowserRouter([
        path: "/cart",
        Component: Cart,
        loader: cartLoader,
+    },
+    {
+      path:"/profile",
+      Component:Profile,
+      loader: profileLoader,
     }
     ],
   },

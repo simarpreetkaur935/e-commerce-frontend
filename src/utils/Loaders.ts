@@ -208,8 +208,25 @@ export const wishlistLoader = () => {
     wishlist,
   };
 };
-//get cart loader
+import { redirect } from "react-router-dom";
+
+// GET CART LOADER
 export const cartLoader = () => {
+  const token =
+    localStorage.getItem("accessToken");
+
+  // =========================
+  // GUEST USER
+  // =========================
+
+  if (!token) {
+    return redirect("/login");
+  }
+
+  // =========================
+  // LOGGED-IN USER
+  // =========================
+
   const cart = api
     .get("/cart")
     .then((response) => {
@@ -232,4 +249,54 @@ export const cartLoader = () => {
   return {
     cart,
   };
+};
+//profile
+// =========================
+// GET MY PROFILE
+// =========================
+
+export const profileLoader = () => {
+  return api
+    .get("/users/me")
+    .then((response) => {
+      if (response.data.success) {
+        return response.data.user;
+      }
+
+      return null;
+    })
+    .catch((error: any) => {
+      console.error(
+        "Get Profile Error:",
+        error.response?.data?.message ||
+          error.message
+      );
+
+      return null;
+    });
+};
+//get profile for edit
+// =========================
+// GET PROFILE FOR EDIT
+// =========================
+
+export const editProfileLoader = () => {
+  return api
+    .get("/users/me")
+    .then((response) => {
+      if (response.data.success) {
+        return response.data.user;
+      }
+
+      return null;
+    })
+    .catch((error: any) => {
+      console.error(
+        "Get Edit Profile Error:",
+        error.response?.data?.message ||
+          error.message
+      );
+
+      return null;
+    });
 };
