@@ -14,7 +14,7 @@ const Login = () => {
       password,
     };
 
-    submit(data, { method: "POST" });
+      submit(data, { method: "POST",   action: "/login" });
   };
 
   return (

@@ -6,7 +6,9 @@ import {
 import {
   Await,
   useLoaderData,
+
 } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import api from "../api/axios";
 
@@ -444,7 +446,7 @@ const CartContent = ({
                     {/* IMAGE */}
 
                     <div className="w-full sm:w-36 h-36 bg-gray-50 border border-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-
+                     <Link to={`/products/${item.product._id}`}>
                       <img
                         src={
                           product
@@ -455,6 +457,7 @@ const CartContent = ({
                         }
                         className="w-full h-full object-contain"
                       />
+                      </Link>
 
                     </div>
 
