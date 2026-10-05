@@ -1,12 +1,31 @@
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import type { FormEvent } from "react";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useActionData,
+  useNavigate,
+  useNavigation,
+  useSubmit,
+} from "react-router-dom";
 
-import api from "../api/axios";
+interface ActionData {
+  success: boolean;
+  message?: string;
+}
 
 const ChangePassword = () => {
   const navigate = useNavigate();
+
+  const submit = useSubmit();
+
+  const actionData =
+    useActionData() as ActionData | undefined;
+
+  const navigation = useNavigation();
 
   const [currentPassword, setCurrentPassword] =
     useState("");
@@ -17,13 +36,37 @@ const ChangePassword = () => {
   const [confirmPassword, setConfirmPassword] =
     useState("");
 
-  const [loading, setLoading] =
-    useState(false);
-
   const [error, setError] =
     useState("");
 
-  const handleSubmit = async (
+  const loading =
+    navigation.state === "submitting";
+
+  // Handle action response
+  useEffect(() => {
+    if (!actionData) {
+      return;
+    }
+
+    if (actionData.success) {
+      setError("");
+
+      // Remove old access token
+      localStorage.removeItem(
+        "accessToken"
+      );
+
+      // Go to login
+      navigate("/login");
+    } else {
+      setError(
+        actionData.message ||
+          "Unable to change password"
+      );
+    }
+  }, [actionData, navigate]);
+
+  const handleSubmit = (
     event: FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
@@ -31,7 +74,9 @@ const ChangePassword = () => {
     setError("");
 
     // Check password confirmation
-    if (newPassword !== confirmPassword) {
+    if (
+      newPassword !== confirmPassword
+    ) {
       setError(
         "New passwords do not match"
       );
@@ -39,41 +84,13 @@ const ChangePassword = () => {
       return;
     }
 
-    try {
-      setLoading(true);
+    const formData = new FormData(
+      event.currentTarget
+    );
 
-      const response = await api.put(
-        "/users/change-password",
-        {
-          currentPassword,
-          newPassword,
-          confirmPassword,
-        }
-      );
-
-      if (response.data.success) {
-        // Remove old access token
-        localStorage.removeItem(
-          "accessToken"
-        );
-
-        // Go to login
-        navigate("/login");
-      }
-    } catch (error: any) {
-      console.error(
-        "Change Password Error:",
-        error.response?.data?.message ||
-          error.message
-      );
-
-      setError(
-        error.response?.data?.message ||
-          "Unable to change password"
-      );
-    } finally {
-      setLoading(false);
-    }
+    submit(formData, {
+      method: "post",
+    });
   };
 
   return (
@@ -83,6 +100,7 @@ const ChangePassword = () => {
         {/* Header */}
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+
           <h1 className="text-2xl font-bold">
             Change Password
           </h1>
@@ -90,6 +108,7 @@ const ChangePassword = () => {
           <p className="text-gray-500 mt-1">
             Update your account password.
           </p>
+
         </div>
 
         {/* Form */}
@@ -104,6 +123,7 @@ const ChangePassword = () => {
             {/* Current Password */}
 
             <div>
+
               <label
                 htmlFor="currentPassword"
                 className="block text-sm font-medium text-gray-700 mb-2"
@@ -113,6 +133,7 @@ const ChangePassword = () => {
 
               <input
                 id="currentPassword"
+                name="currentPassword"
                 type="password"
                 value={currentPassword}
                 onChange={(event) =>
@@ -123,11 +144,13 @@ const ChangePassword = () => {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter current password"
               />
+
             </div>
 
             {/* New Password */}
 
             <div>
+
               <label
                 htmlFor="newPassword"
                 className="block text-sm font-medium text-gray-700 mb-2"
@@ -137,6 +160,7 @@ const ChangePassword = () => {
 
               <input
                 id="newPassword"
+                name="newPassword"
                 type="password"
                 value={newPassword}
                 onChange={(event) =>
@@ -147,11 +171,13 @@ const ChangePassword = () => {
                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter new password"
               />
+
             </div>
 
             {/* Confirm Password */}
 
             <div>
+
               <label
                 htmlFor="confirmPassword"
                 className="block text-sm font-medium text-gray-700 mb-2"
@@ -161,6 +187,7 @@ const ChangePassword = () => {
 
               <input
                 id="confirmPassword"
+                name="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(event) =>
@@ -189,6 +216,7 @@ const ChangePassword = () => {
                     : "✗ Passwords do not match"}
                 </p>
               )}
+
             </div>
 
             {/* Error */}

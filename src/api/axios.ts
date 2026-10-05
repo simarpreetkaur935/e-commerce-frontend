@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import type {
   InternalAxiosRequestConfig,
 } from "axios";
@@ -49,13 +50,23 @@ api.interceptors.response.use(
     const originalRequest =
       error.config as RetryConfig;
 
-    // Access token expired
+    // =========================
+    // CHECK AUTH REQUEST
+    // =========================
+
+    const isAuthRequest =
+      originalRequest.url?.startsWith(
+        "/auth/"
+      );
+
+    // =========================
+    // ACCESS TOKEN EXPIRED
+    // =========================
+
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes(
-        "/auth/refresh-token"
-      )
+      !isAuthRequest
     ) {
       originalRequest._retry = true;
 
@@ -103,6 +114,7 @@ api.interceptors.response.use(
       }
     }
 
+    // Return the original error
     return Promise.reject(error);
   }
 );

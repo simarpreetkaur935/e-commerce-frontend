@@ -1,5 +1,8 @@
 import { Suspense } from "react";
 import { Await, Link, useLoaderData } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import api from "../api/axios";
 
 interface Product {
   _id: string;
@@ -32,6 +35,45 @@ const Home = () => {
   const { products } = useLoaderData() as {
     products: Promise<Product[]>;
   };
+  const navigate = useNavigate();
+
+  // =========================
+  // ADD TO CART
+  // =========================
+
+  const addToCart = async (product: Product) => {
+    const token = localStorage.getItem("accessToken");
+
+    // User is not logged in
+    if (!token) {
+      toast.info("You need to login to add products to your cart.");
+
+      navigate("/login");
+
+      return;
+    }
+
+    try {
+      const response = await api.post(`/cart/${product._id}`, {
+        quantity: 1,
+      });
+
+      if (response.data.success) {
+        toast.success("Product moved to cart");
+
+        navigate("/cart");
+      }
+    } catch (error: any) {
+      console.error(
+        "Add To Cart Error:",
+        error.response?.data?.message || error.message,
+      );
+
+      toast.error(
+        error.response?.data?.message || "Unable to add product to cart",
+      );
+    }
+  };
 
   return (
     <div className="px-6 py-8">
@@ -62,7 +104,9 @@ const Home = () => {
                     FEATURED PRODUCTS
                 ========================= */}
 
-                <h2 className="text-2xl font-bold mb-6">Explore Our Products</h2>
+                <h2 className="text-2xl font-bold mb-6">
+                  Explore Our Products
+                </h2>
 
                 {/* =========================
                     PRODUCT GRID
@@ -165,8 +209,9 @@ const Home = () => {
 
                           <button
                             type="button"
+                            onClick={() => addToCart(product)}
                             disabled={product.stock === 0}
-                            className="flex-1 bg-black text-white hover:bg-gray-800 disabled:bg-gray-400 py-2 rounded-md font-medium"
+                            className="flex-1 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-black py-3 rounded-md font-semibold transition"
                           >
                             Add to Cart
                           </button>
