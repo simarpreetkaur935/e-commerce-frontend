@@ -1,8 +1,8 @@
+
 import { useEffect, useState } from "react";
+import { Link, useLoaderData } from "react-router-dom";
+import type { Profile as ProfileType } from "../interfaces/profile.type";
 
-import { Link, useLoaderData, useNavigate } from "react-router-dom";
-
-import api from "../api/axios";
 
 interface Profile {
   _id: string;
@@ -18,19 +18,15 @@ interface Profile {
 
 const Profile = () => {
   const profile = useLoaderData() as Profile;
-
-  const navigate = useNavigate();
+  const [location, setLocation] = useState("Detecting location...");
 
   // =========================
   // CURRENT LOCATION
   // =========================
 
-  const [location, setLocation] = useState("Detecting location...");
-
   useEffect(() => {
     if (!navigator.geolocation) {
       setLocation("Location is not supported by this browser");
-
       return;
     }
 
@@ -38,6 +34,7 @@ const Profile = () => {
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
+
           const response = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`,
           );
@@ -49,9 +46,7 @@ const Profile = () => {
           const data = await response.json();
 
           const city = data.city || data.locality || "";
-
           const state = data.principalSubdivision || "";
-
           const country = data.countryName || "";
 
           const locationText = [city, state, country]
@@ -61,11 +56,9 @@ const Profile = () => {
           setLocation(locationText || "Location not available");
         } catch (error) {
           console.error("Location Error:", error);
-
           setLocation("Unable to detect location");
         }
       },
-
       (error) => {
         console.error("Geolocation Error:", error);
 
@@ -82,41 +75,20 @@ const Profile = () => {
     );
   }, []);
 
-  // =========================
-  // LOGOUT
-  // =========================
-
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
-    } catch (error: unknown) {
-      console.error("Logout Error:", error);
-    } finally {
-      // Remove access token from browser
-      localStorage.removeItem("accessToken");
-
-      // Go to login page
-      navigate("/login");
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100 px-6 py-8">
-      <div className="max-w-7xl mx-auto">
-        {/* =========================
-            PROFILE HEADER
-        ========================= */}
+    <div className="min-h-screen bg-gray-100 px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl">
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+        {/* PROFILE HEADER */}
+
+        <div className="mb-6 rounded-xl border border-gray-200 bg-white p-6">
           <div className="flex items-center gap-6">
-            {/* Profile Image */}
-
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-200">
               {profile.avatar ? (
                 <img
                   src={profile.avatar}
                   alt={profile.name}
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               ) : (
                 <span className="text-3xl font-semibold text-gray-500">
@@ -125,168 +97,72 @@ const Profile = () => {
               )}
             </div>
 
-            {/* User Name */}
-
             <div>
-              <h1 className="text-3xl font-bold">{profile.name}</h1>
-
-              <p className="text-gray-500 mt-1">{profile.email}</p>
+              <h1 className="text-3xl font-bold">
+                {profile.name}
+              </h1>
+              <p className="mt-1 text-gray-500">
+                {profile.email}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* =========================
-            PERSONAL INFORMATION
-        ========================= */}
+        {/* PERSONAL INFORMATION */}
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-6">Personal Information</h2>
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-semibold">
+                Personal Information
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                View your personal details.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Name */}
+            <Link
+              to="/profile/edit"
+              className="rounded-lg bg-yellow-400 px-4 py-2 font-semibold text-gray-900 transition hover:bg-yellow-500"
+            >
+              Edit Profile
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
             <div>
               <p className="text-sm text-gray-500">Full Name</p>
-
               <p className="mt-1 font-medium">{profile.name}</p>
             </div>
 
-            {/* Email */}
-
             <div>
               <p className="text-sm text-gray-500">Email</p>
-
               <p className="mt-1 font-medium">{profile.email}</p>
             </div>
 
-            {/* Phone */}
-
             <div>
               <p className="text-sm text-gray-500">Phone</p>
-
               <p className="mt-1 font-medium">
                 {profile.phone || "Not provided"}
               </p>
             </div>
 
-            {/* Address */}
-
             <div>
               <p className="text-sm text-gray-500">Address</p>
-
               <p className="mt-1 font-medium">
                 {profile.address?.country || "Not provided"}
               </p>
             </div>
 
-            {/* Current Location */}
-
-            <div>
+            <div className="md:col-span-2">
               <p className="text-sm text-gray-500">Current Location</p>
-
               <p className="mt-1 font-medium">📍 {location}</p>
             </div>
+
           </div>
         </div>
 
-        {/* =========================
-            ACCOUNT OPTIONS
-        ========================= */}
-
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-6">My Account</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Orders */}
-
-            <Link
-              to="/orders"
-              className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition"
-            >
-              <h3 className="font-semibold">My Orders</h3>
-
-              <p className="text-sm text-gray-500 mt-2">
-                View and track your orders.
-              </p>
-            </Link>
-
-            {/* Wishlist */}
-
-            <Link
-              to="/wishlist"
-              className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition"
-            >
-              <h3 className="font-semibold">My Wishlist</h3>
-
-              <p className="text-sm text-gray-500 mt-2">
-                View your saved products.
-              </p>
-            </Link>
-
-            {/* Cart */}
-
-            <Link
-              to="/cart"
-              className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition"
-            >
-              <h3 className="font-semibold">My Cart</h3>
-
-              <p className="text-sm text-gray-500 mt-2">
-                View products in your cart.
-              </p>
-            </Link>
-          </div>
-        </div>
-
-        {/* =========================
-            ACCOUNT SETTINGS
-        ========================= */}
-
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold mb-6">Account Settings</h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {/* Edit Profile */}
-
-            <Link
-              to="/profile/edit"
-              className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition"
-            >
-              <h3 className="font-semibold">Edit Profile</h3>
-
-              <p className="text-sm text-gray-500 mt-2">
-                Update your personal information.
-              </p>
-            </Link>
-
-            {/* Change Password */}
-
-            <Link
-              to="/change-password"
-              className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition"
-            >
-              <h3 className="font-semibold">Change Password</h3>
-
-              <p className="text-sm text-gray-500 mt-2">
-                Update your account password.
-              </p>
-            </Link>
-
-            {/* Logout */}
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="border border-red-200 rounded-lg p-5 text-left hover:bg-red-50 transition"
-            >
-              <h3 className="font-semibold text-red-600">Logout</h3>
-
-              <p className="text-sm text-gray-500 mt-2">
-                Sign out from your account.
-              </p>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

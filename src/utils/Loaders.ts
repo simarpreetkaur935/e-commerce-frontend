@@ -1,15 +1,34 @@
 import api from "../api/axios";
 
-const products = async () => {
+
+const products = async (
+  search?: string,
+  cursor?: {
+    cursorCreatedAt: string;
+    cursorId: string;
+  }
+) => {
   try {
-    const response = await api.get("/products");
+    const response = await api.get("/products", {
+      params: {
+        limit: 8,
+        ...(search ? { search } : {}),
+        ...(cursor ?? {}),
+      },
+    });
 
     if (response.data.success) {
-      return response.data.products;
+      return {
+        success: true,
+        products: response.data.products,
+        pagination: response.data.pagination,
+      };
     }
 
     return {
-      status: false,
+      success: false,
+      products: [],
+      pagination: null,
       message: "Unable to fetch products",
     };
   } catch (error: any) {
@@ -19,11 +38,36 @@ const products = async () => {
     );
 
     return {
-      status: false,
-      message: error.response?.data?.message || "Unable to fetch products",
+      success: false,
+      products: [],
+      pagination: null,
+      message:
+        error.response?.data?.message ||
+        "Unable to fetch products",
     };
   }
 };
+
+export const homeLoader = async ({
+  request,
+}: {
+  request: Request;
+}) => {
+  const url = new URL(request.url);
+  const search = url.searchParams.get("search")?.trim() || "";
+
+  const [productsData, categoriesData] = await Promise.all([
+    products(search),
+    categories(),
+  ]);
+
+  return {
+    products: Promise.resolve(productsData),
+    categories: categoriesData,
+    search,
+  };
+};
+
 // category
 const categories = async () => {
   try {
@@ -50,18 +94,10 @@ const categories = async () => {
     };
   }
 };
-//home
-export const homeLoader = async () => {
-  const [productsData, categoriesData] = await Promise.all([
-    products(),
-    categories(),
-  ]);
 
-  return {
-    products: productsData,
-    categories: categoriesData,
-  };
-};
+
+
+
 // product detail loader
 export const productDetailsLoader = async ({
   params,
