@@ -542,29 +542,37 @@ const Navbar = () => {
       </nav>
 
       {/* SECONDARY NAVBAR */}
-      <div className="relative z-10 bg-gray-800 px-6 py-2 text-white">
-        <div className="flex gap-6 overflow-x-auto whitespace-nowrap text-sm">
-          <Link to="/" className="transition hover:text-gray-300">
-            All Products
-          </Link>
+    {/* SECONDARY NAVBAR */}
+<div className="relative z-10 bg-gray-800 px-6 py-2 text-white">
+  <div className="flex gap-6 overflow-x-auto whitespace-nowrap text-sm">
+    <Link to="/" className="transition hover:text-gray-300">
+      Home
+    </Link>
 
-          <Link to="/new-arrivals" className="transition hover:text-gray-300">
-            New Arrivals
-          </Link>
+    <Link to="/products" className="transition hover:text-gray-300">
+      All Products
+    </Link>
 
-          <Link to="/best-sellers" className="transition hover:text-gray-300">
-            Best Sellers
-          </Link>
+    <Link
+  to="/products?type=new-arrivals"
+  className="transition hover:text-gray-300"
+>
+  New Arrivals
+</Link>
 
-          <Link to="/?offers=true" className="transition hover:text-gray-300">
-            Today's Deals
-          </Link>
+    <Link to="/best-sellers" className="transition hover:text-gray-300">
+      Best Sellers
+    </Link>
 
-          <Link to="/offers" className="transition hover:text-gray-300">
-            Offers
-          </Link>
-        </div>
-      </div>
+    <Link to="/todays-deals"className="transition hover:text-gray-300">
+      Today's Deals
+    </Link>
+
+    <Link to="/?offersOnly=true" className="transition hover:text-gray-300">
+      Offers
+    </Link>
+  </div>
+</div>
     </>
   );
 };

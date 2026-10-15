@@ -1,62 +1,108 @@
+
 import { createBrowserRouter } from "react-router-dom";
-import MainLayout from "../components/layout/ MainLayout";
+import MainLayout from "../components/layout/ MainLayout.tsx";
 import Home from "../pages/Home";
-import { homeLoader, profileLoader, editProfileLoader } from "../utils/Loaders";
-import authRoutes from "./auth";
+import Product from "../pages/Product";
 import ProductDetails from "../pages/ProductDetails";
-import {productDetailsLoader}from "../utils/Loaders";
 import Categories from "../pages/Categories";
-import { categoriesLoader } from "../utils/Loaders";
 import Wishlist from "../pages/Wishlist";
-import { wishlistLoader } from "../utils/Loaders";
 import Cart from "../pages/Cart";
-import {cartLoader} from "../utils/Loaders";
 import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
 import ChangePassword from "../pages/changePassword";
 
+import BestSellers from "../pages/BestSellers.tsx";
+import TodaysDeals from "../pages/TodayDeal.tsx";
 
+import {
+  homeLoader,
+  allProductsLoader,
+  productDetailsLoader,
+  categoriesLoader,
+  wishlistLoader,
+  cartLoader,
+  profileLoader,
+  editProfileLoader,
+ 
+} from "../utils/Loaders";
+
+import authRoutes from "./auth";
 
 const routes = createBrowserRouter([
   {
-    path: "/",Component: MainLayout,children: [
-      {index: true, Component: Home,loader: homeLoader,},
-      
-    {
-      path: "/products/:id",
-      Component: ProductDetails,
-      loader: productDetailsLoader,
-    },
-     {
-      path: "/categories",
-      Component: Categories,
-      loader: categoriesLoader,
-    },
-    {
-        path : "/wishlist",
-        Component: Wishlist,
-        loader: wishlistLoader,
-    },
-    {
-       path: "/cart",
-       Component: Cart,
-       loader: cartLoader,
-    },
-    {
-      path:"/profile",
-      Component:Profile,
-      loader: profileLoader,
-    },
-   {
-  path: "/profile/edit",
-  Component: EditProfile,
-  loader: editProfileLoader,
+    path: "/",
+    Component: MainLayout,
+    children: [
+      // HOME PAGE
+      {
+        index: true,
+        Component: Home,
+        loader: homeLoader,
+      },
+
+      // ALL PRODUCTS PAGE
+      {
+        path: "products",
+        Component: Product,
+        loader: allProductsLoader,
+      },
+
+      // SINGLE PRODUCT DETAILS
+      {
+        path: "products/:id",
+        Component: ProductDetails,
+        loader: productDetailsLoader,
+      },
+
+{
+  path: "/best-sellers",
+  Component: BestSellers,
 },
 {
-path: "/change-password",
-Component: ChangePassword,
-
+  path: "/todays-deals",
+  Component: TodaysDeals,
 },
+
+      // CATEGORIES
+      {
+        path: "categories",
+        Component: Categories,
+        loader: categoriesLoader,
+      },
+
+      // WISHLIST
+      {
+        path: "wishlist",
+        Component: Wishlist,
+        loader: wishlistLoader,
+      },
+
+      // CART
+      {
+        path: "cart",
+        Component: Cart,
+        loader: cartLoader,
+      },
+
+      // PROFILE
+      {
+        path: "profile",
+        Component: Profile,
+        loader: profileLoader,
+      },
+
+      // EDIT PROFILE
+      {
+        path: "profile/edit",
+        Component: EditProfile,
+        loader: editProfileLoader,
+      },
+
+      // CHANGE PASSWORD
+      {
+        path: "change-password",
+        Component: ChangePassword,
+      },
     ],
   },
   ...authRoutes,
