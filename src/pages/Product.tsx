@@ -1,6 +1,10 @@
-
 import { useEffect, useState } from "react";
-import { Link, useLoaderData, useLocation } from "react-router-dom";
+import {
+  Link,
+  useLoaderData,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import api from "../api/axios";
 
 interface ProductType {
@@ -11,6 +15,7 @@ interface ProductType {
   images: string[];
   price: number;
   discountPrice?: number;
+  isOnSale: boolean; // Add this line
   stock: number;
   averageRating: number;
   totalReviews: number;
@@ -20,10 +25,10 @@ interface ProductType {
   };
   createdAt: string;
 }
-
 interface Cursor {
   cursorCreatedAt: string;
   cursorId: string;
+  cursorPrice?: number;
 }
 
 interface Pagination {
@@ -43,11 +48,15 @@ interface ProductsResponse {
 interface LoaderData {
   products: ProductsResponse;
   search?: string;
+  type?: string;
+  category?: string;
+  sort?: string;
 }
-
 const Product = () => {
   const loaderData = useLoaderData() as LoaderData;
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sort = searchParams.get("sort") || "";
 
   const initialData = loaderData.products;
 
@@ -57,11 +66,11 @@ const Product = () => {
   const isNewArrivals = location.pathname === "/new-arrivals";
 
   const [products, setProducts] = useState<ProductType[]>(
-    initialData.products || []
+    initialData.products || [],
   );
 
   const [pagination, setPagination] = useState<Pagination | null>(
-    initialData.pagination
+    initialData.pagination,
   );
 
   const [loadingMore, setLoadingMore] = useState(false);
@@ -74,7 +83,6 @@ const Product = () => {
     setError("");
   }, [initialData]);
 
-  // Load the next page using cursor pagination
   const handleLoadMore = async () => {
     const cursor = pagination?.nextCursor;
 
@@ -91,14 +99,19 @@ const Product = () => {
           limit: 8,
           ...(search ? { search } : {}),
           ...(isNewArrivals ? { type: "new-arrivals" } : {}),
+          ...(loaderData.category ? { category: loaderData.category } : {}),
+          ...(sort ? { sort } : {}),
           cursorCreatedAt: cursor.cursorCreatedAt,
           cursorId: cursor.cursorId,
+          ...(cursor.cursorPrice !== undefined
+            ? { cursorPrice: cursor.cursorPrice }
+            : {}),
         },
       });
 
       if (!response.data.success) {
         throw new Error(
-          response.data.message || "Unable to load more products"
+          response.data.message || "Unable to load more products",
         );
       }
 
@@ -106,23 +119,19 @@ const Product = () => {
 
       setProducts((currentProducts) => {
         const existingIds = new Set(
-          currentProducts.map((product) => product._id)
+          currentProducts.map((product) => product._id),
         );
 
         return [
           ...currentProducts,
-          ...newProducts.filter(
-            (product) => !existingIds.has(product._id)
-          ),
+          ...newProducts.filter((product) => !existingIds.has(product._id)),
         ];
       });
 
       setPagination(response.data.pagination);
     } catch (err: unknown) {
       setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load more products"
+        err instanceof Error ? err.message : "Unable to load more products",
       );
     } finally {
       setLoadingMore(false);
@@ -200,11 +209,37 @@ const Product = () => {
           </div>
         ) : (
           <>
-            {/* PRODUCT COUNT */}
-            <div className="mb-5 flex items-center justify-between">
+            {/* PRODUCT COUNT AND SORTING */}
+            <div className="mb-5 flex items-center justify-between gap-4">
               <p className="text-sm text-gray-600">
                 Showing {products.length} products
               </p>
+
+              <select
+                value={sort}
+                onChange={(e) => {
+                  const params = new URLSearchParams(searchParams);
+                  const value = e.target.value;
+
+                  if (value) {
+                    params.set("sort", value);
+                  } else {
+                    params.delete("sort");
+                  }
+
+                  // Reset pagination when sorting changes
+                  params.delete("cursorId");
+                  params.delete("cursorPrice");
+                  params.delete("cursorCreatedAt");
+
+                  setSearchParams(params);
+                }}
+                className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">Default Sorting</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
             </div>
 
             {/* PRODUCT GRID */}
@@ -239,7 +274,7 @@ const Product = () => {
                         </div>
                       )}
 
-                      {hasDiscount && (
+                      {product.isOnSale && (
                         <span className="absolute left-3 top-3 rounded-md bg-red-600 px-2.5 py-1 text-xs font-semibold text-white">
                           Sale
                         </span>
@@ -309,9 +344,7 @@ const Product = () => {
 
             {/* ERROR MESSAGE */}
             {error && (
-              <p className="mt-6 text-center text-sm text-red-600">
-                {error}
-              </p>
+              <p className="mt-6 text-center text-sm text-red-600">{error}</p>
             )}
 
             {/* CURSOR PAGINATION */}
@@ -323,9 +356,7 @@ const Product = () => {
                   disabled={loadingMore}
                   className="rounded-lg bg-gray-900 px-8 py-3 font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loadingMore
-                    ? "Loading products..."
-                    : "Load More Products"}
+                  {loadingMore ? "Loading products..." : "Load More Products"}
                 </button>
               </div>
             )}

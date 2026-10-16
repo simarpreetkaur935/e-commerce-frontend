@@ -4,11 +4,13 @@ import api from "../api/axios";
 export const products = async (
   search?: string,
   cursor?: {
-    cursorCreatedAt: string;
+    cursorCreatedAt?: string;
     cursorId: string;
+    cursorPrice?: number;
   },
   type?: string,
-  category?: string
+  category?: string,
+  sort?: string
 ) => {
   try {
     const response = await api.get("/products", {
@@ -18,6 +20,7 @@ export const products = async (
         ...(cursor ?? {}),
         ...(type ? { type } : {}),
         ...(category ? { category } : {}),
+        ...(sort ? { sort } : {}),
       },
     });
 
@@ -51,7 +54,7 @@ export const products = async (
     };
   }
 };
-//all product loader 
+
 export const allProductsLoader = async ({
   request,
 }: {
@@ -62,14 +65,14 @@ export const allProductsLoader = async ({
   const search = url.searchParams.get("search") || undefined;
   const type = url.searchParams.get("type") || undefined;
   const category = url.searchParams.get("category") || undefined;
-
-  console.log("Loader type:", type);
+  const sort = url.searchParams.get("sort") || undefined;
 
   const productsData = await products(
     search,
     undefined,
     type,
-    category
+    category,
+    sort
   );
 
   return {
@@ -77,6 +80,7 @@ export const allProductsLoader = async ({
     search: search || "",
     type: type || "",
     category: category || "",
+    sort: sort || "",
   };
 };
 
