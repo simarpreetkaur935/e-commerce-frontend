@@ -15,7 +15,7 @@ interface ProductType {
   images: string[];
   price: number;
   discountPrice?: number;
-  isOnSale: boolean; // Add this line
+  isOnSale: boolean;
   stock: number;
   averageRating: number;
   totalReviews: number;
@@ -25,6 +25,7 @@ interface ProductType {
   };
   createdAt: string;
 }
+
 interface Cursor {
   cursorCreatedAt: string;
   cursorId: string;
@@ -52,12 +53,13 @@ interface LoaderData {
   category?: string;
   sort?: string;
 }
+
 const Product = () => {
   const loaderData = useLoaderData() as LoaderData;
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const sort = searchParams.get("sort") || "";
 
+  const sort = searchParams.get("sort") || "";
   const initialData = loaderData.products;
 
   const search =
@@ -65,12 +67,18 @@ const Product = () => {
 
   const isNewArrivals = location.pathname === "/new-arrivals";
 
+  const type = searchParams.get("type") || loaderData.type || "";
+
+  const isBestSellers = type === "best-sellers";
+  const isTodaysDeals = type === "todays-deals";
+  const isOffers = type === "offers";
+
   const [products, setProducts] = useState<ProductType[]>(
-    initialData.products || [],
+    initialData.products || []
   );
 
   const [pagination, setPagination] = useState<Pagination | null>(
-    initialData.pagination,
+    initialData.pagination
   );
 
   const [loadingMore, setLoadingMore] = useState(false);
@@ -83,6 +91,7 @@ const Product = () => {
     setError("");
   }, [initialData]);
 
+  // Load more products using cursor pagination
   const handleLoadMore = async () => {
     const cursor = pagination?.nextCursor;
 
@@ -98,8 +107,10 @@ const Product = () => {
         params: {
           limit: 8,
           ...(search ? { search } : {}),
-          ...(isNewArrivals ? { type: "new-arrivals" } : {}),
-          ...(loaderData.category ? { category: loaderData.category } : {}),
+          ...(type ? { type } : {}),
+          ...(loaderData.category
+            ? { category: loaderData.category }
+            : {}),
           ...(sort ? { sort } : {}),
           cursorCreatedAt: cursor.cursorCreatedAt,
           cursorId: cursor.cursorId,
@@ -111,7 +122,7 @@ const Product = () => {
 
       if (!response.data.success) {
         throw new Error(
-          response.data.message || "Unable to load more products",
+          response.data.message || "Unable to load more products"
         );
       }
 
@@ -119,19 +130,23 @@ const Product = () => {
 
       setProducts((currentProducts) => {
         const existingIds = new Set(
-          currentProducts.map((product) => product._id),
+          currentProducts.map((product) => product._id)
         );
 
         return [
           ...currentProducts,
-          ...newProducts.filter((product) => !existingIds.has(product._id)),
+          ...newProducts.filter(
+            (product) => !existingIds.has(product._id)
+          ),
         ];
       });
 
       setPagination(response.data.pagination);
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Unable to load more products",
+        err instanceof Error
+          ? err.message
+          : "Unable to load more products"
       );
     } finally {
       setLoadingMore(false);
@@ -177,13 +192,25 @@ const Product = () => {
               ? `Search results for "${search}"`
               : isNewArrivals
                 ? "New Arrivals"
-                : "Explore Our Products"}
+                : isBestSellers
+                  ? "Best Sellers"
+                  : isTodaysDeals
+                    ? "Today's Deals"
+                    : isOffers
+                      ? "Offers"
+                      : "Explore Our Products"}
           </h1>
 
           <p className="mt-2 text-gray-600">
             {isNewArrivals
               ? "Discover our latest products."
-              : "Discover products selected for you."}
+              : isBestSellers
+                ? "Discover our most popular products."
+                : isTodaysDeals
+                  ? "Discover products with exciting discounts."
+                  : isOffers
+                    ? "Explore products with special offers."
+                    : "Discover products selected for you."}
           </p>
         </div>
 
@@ -197,7 +224,13 @@ const Product = () => {
             <p className="mt-2 text-gray-500">
               {isNewArrivals
                 ? "There are no new arrivals to display right now."
-                : "Try another search or explore all our products."}
+                : isTodaysDeals
+                  ? "There are no qualifying deals right now."
+                  : isOffers
+                    ? "There are no qualifying offers right now."
+                    : isBestSellers
+                      ? "There are no best-selling products to display."
+                      : "Try another search or explore all our products."}
             </p>
 
             <Link
@@ -237,8 +270,12 @@ const Product = () => {
                 className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm"
               >
                 <option value="">Default Sorting</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
+                <option value="price-asc">
+                  Price: Low to High
+                </option>
+                <option value="price-desc">
+                  Price: High to Low
+                </option>
               </select>
             </div>
 
@@ -344,7 +381,9 @@ const Product = () => {
 
             {/* ERROR MESSAGE */}
             {error && (
-              <p className="mt-6 text-center text-sm text-red-600">{error}</p>
+              <p className="mt-6 text-center text-sm text-red-600">
+                {error}
+              </p>
             )}
 
             {/* CURSOR PAGINATION */}
@@ -356,7 +395,9 @@ const Product = () => {
                   disabled={loadingMore}
                   className="rounded-lg bg-gray-900 px-8 py-3 font-medium text-white transition hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loadingMore ? "Loading products..." : "Load More Products"}
+                  {loadingMore
+                    ? "Loading products..."
+                    : "Load More Products"}
                 </button>
               </div>
             )}

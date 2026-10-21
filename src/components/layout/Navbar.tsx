@@ -182,9 +182,49 @@ const Navbar = () => {
           {/* LOGO */}
           <Link
             to="/"
-            className="shrink-0 text-2xl font-bold transition hover:text-gray-300"
+            aria-label="MyStore home"
+            className="group inline-flex shrink-0 items-center gap-2.5"
           >
-            MyStore
+            {/* Shopping Bag Icon */}
+            <svg
+              viewBox="0 0 40 40"
+              className="h-9 w-9 shrink-0 transition-transform duration-200 group-hover:scale-105"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              {/* Bag body */}
+              <path
+                d="M7.5 14H32.5L30.5 33H9.5L7.5 14Z"
+                stroke="#FBBF24"
+                strokeWidth="2.2"
+                strokeLinejoin="round"
+              />
+
+              {/* Bag handle */}
+              <path
+                d="M14 15V11C14 7.7 16.7 5 20 5C23.3 5 26 7.7 26 11V15"
+                stroke="#FBBF24"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+              />
+
+              {/* Subtle bag detail */}
+              <path
+                d="M15 21V25M25 21V25"
+                stroke="#FBBF24"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            {/* Brand Name */}
+            <span className="text-[26px] font-extrabold leading-none tracking-tight">
+              <span className="text-white">My</span>
+              <span className="text-amber-400 transition-colors duration-200 group-hover:text-amber-300">
+                Store
+              </span>
+            </span>
           </Link>
 
           {/* HOME */}
@@ -542,37 +582,46 @@ const Navbar = () => {
       </nav>
 
       {/* SECONDARY NAVBAR */}
-    {/* SECONDARY NAVBAR */}
-<div className="relative z-10 bg-gray-800 px-6 py-2 text-white">
-  <div className="flex gap-6 overflow-x-auto whitespace-nowrap text-sm">
-    <Link to="/" className="transition hover:text-gray-300">
-      Home
-    </Link>
+      {/* SECONDARY NAVBAR */}
+      <div className="relative z-10 bg-gray-800 px-6 py-2 text-white">
+        <div className="flex gap-6 overflow-x-auto whitespace-nowrap text-sm">
+          <Link to="/" className="transition hover:text-gray-300">
+            Home
+          </Link>
 
-    <Link to="/products" className="transition hover:text-gray-300">
-      All Products
-    </Link>
+          <Link to="/products" className="transition hover:text-gray-300">
+            All Products
+          </Link>
 
-    <Link
-  to="/products?type=new-arrivals"
-  className="transition hover:text-gray-300"
->
-  New Arrivals
-</Link>
+          <Link
+            to="/products?type=new-arrivals"
+            className="transition hover:text-gray-300"
+          >
+            New Arrivals
+          </Link>
 
-    <Link to="/best-sellers" className="transition hover:text-gray-300">
-      Best Sellers
-    </Link>
+          <Link
+            to="/products?type=best-sellers"
+            className="transition hover:text-gray-300"
+          >
+            Best Sellers
+          </Link>
 
-    <Link to="/todays-deals"className="transition hover:text-gray-300">
-      Today's Deals
-    </Link>
+          <Link
+            to="/products?type=todays-deals"
+            className="transition hover:text-gray-300"
+          >
+            Today's Deals
+          </Link>
 
-    <Link to="/?offersOnly=true" className="transition hover:text-gray-300">
-      Offers
-    </Link>
-  </div>
-</div>
+          <Link
+            to="/products?type=offers"
+            className="transition hover:text-gray-300"
+          >
+            Offers
+          </Link>
+        </div>
+      </div>
     </>
   );
 };

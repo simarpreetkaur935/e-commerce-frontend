@@ -11,8 +11,6 @@ import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
 import ChangePassword from "../pages/changePassword";
 
-import BestSellers from "../pages/BestSellers.tsx";
-import TodaysDeals from "../pages/TodayDeal.tsx";
 
 import {
   homeLoader,
@@ -54,14 +52,7 @@ const routes = createBrowserRouter([
         loader: productDetailsLoader,
       },
 
-{
-  path: "/best-sellers",
-  Component: BestSellers,
-},
-{
-  path: "/todays-deals",
-  Component: TodaysDeals,
-},
+
 
       // CATEGORIES
       {
