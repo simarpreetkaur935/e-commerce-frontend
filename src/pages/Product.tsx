@@ -59,8 +59,10 @@ const Product = () => {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const sort = searchParams.get("sort") || "";
-  const initialData = loaderData.products;
+  
+const sort = searchParams.get("sort") || "";
+const initialData = loaderData.products;
+
 
   const search =
     new URLSearchParams(location.search).get("search")?.trim() || "";
@@ -77,6 +79,28 @@ const Product = () => {
     initialData.products || []
   );
 
+// Sort products by the displayed selling price
+const sortedProducts = [...products].sort((a, b) => {
+  const priceA =
+    a.discountPrice != null && a.discountPrice < a.price
+      ? a.discountPrice
+      : a.price;
+
+  const priceB =
+    b.discountPrice != null && b.discountPrice < b.price
+      ? b.discountPrice
+      : b.price;
+
+  if (sort === "price-asc") {
+    return priceA - priceB;
+  }
+
+  if (sort === "price-desc") {
+    return priceB - priceA;
+  }
+
+  return 0;
+});
   const [pagination, setPagination] = useState<Pagination | null>(
     initialData.pagination
   );
@@ -111,7 +135,12 @@ const Product = () => {
           ...(loaderData.category
             ? { category: loaderData.category }
             : {}),
-          ...(sort ? { sort } : {}),
+          ...(sort
+  ? {
+      sortType: "price",
+      sortOrder: sort === "price-asc" ? 1 : -1,
+    }
+  : {}),
           cursorCreatedAt: cursor.cursorCreatedAt,
           cursorId: cursor.cursorId,
           ...(cursor.cursorPrice !== undefined
@@ -281,7 +310,7 @@ const Product = () => {
 
             {/* PRODUCT GRID */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {products.map((product) => {
+              {sortedProducts.map((product) => {
                 const image = product.images?.[0];
 
                 const hasDiscount =

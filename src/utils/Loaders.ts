@@ -20,7 +20,13 @@ export const products = async (
         ...(cursor ?? {}),
         ...(type ? { type } : {}),
         ...(category ? { category } : {}),
-        ...(sort ? { sort } : {}),
+
+        ...(sort
+          ? {
+              sortType: "price",
+              sortOrder: sort === "price-asc" ? 1 : -1,
+            }
+          : {}),
       },
     });
 
@@ -57,14 +63,22 @@ export const products = async (
 
 export const allProductsLoader = async ({
   request,
+  params,
 }: {
   request: Request;
+  params: { categoryId?: string };
 }) => {
   const url = new URL(request.url);
 
   const search = url.searchParams.get("search") || undefined;
   const type = url.searchParams.get("type") || undefined;
-  const category = url.searchParams.get("category") || undefined;
+
+  // Read category ID from route first, then query string
+  const category =
+    params.categoryId ||
+    url.searchParams.get("category") ||
+    undefined;
+
   const sort = url.searchParams.get("sort") || undefined;
 
   const productsData = await products(
@@ -83,6 +97,7 @@ export const allProductsLoader = async ({
     sort: sort || "",
   };
 };
+
 
 
 export const homeLoader = async ({
