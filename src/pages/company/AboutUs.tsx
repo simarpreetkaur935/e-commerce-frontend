@@ -169,19 +169,12 @@ const AboutUs = () => {
             Browse our collection and discover products for your needs.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
+          <div className="flex justify-center mt-8">
             <Link
               to="/products"
               className="bg-white text-slate-950 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition"
             >
               Shop All Products
-            </Link>
-
-            <Link
-              to="/help-center"
-              className="border border-slate-600 px-6 py-3 rounded-lg font-semibold hover:bg-slate-800 transition"
-            >
-              Visit Help Center
             </Link>
           </div>
         </div>

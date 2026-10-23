@@ -55,7 +55,6 @@ const ContactUs = () => {
       {/* CONTACT CONTENT */}
       <section className="px-6 py-16">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
-
           {/* CONTACT INFORMATION */}
           <div className="space-y-6">
             <div>
@@ -257,7 +256,7 @@ const ContactUs = () => {
         </div>
       </section>
 
-      {/* HELP CENTER */}
+      {/* HELP SECTION */}
       <section className="bg-white border-t border-gray-200 px-6 py-12">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-900">
@@ -269,14 +268,7 @@ const ContactUs = () => {
             returns, refunds, and order tracking.
           </p>
 
-          <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
-            <Link
-              to="/help-center"
-              className="bg-amber-500 text-slate-950 px-6 py-3 rounded-lg font-semibold hover:bg-amber-400 transition"
-            >
-              Visit Help Center
-            </Link>
-
+          <div className="flex justify-center mt-6">
             <Link
               to="/shipping-information"
               className="border border-gray-300 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
