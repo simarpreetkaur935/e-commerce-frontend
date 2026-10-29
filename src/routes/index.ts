@@ -19,6 +19,8 @@ import Careers from "../pages/company/Careers.tsx";
 import ContactUs from "../pages/company/ContactUs";
 import PrivacyPolicy from "../pages/company/PrivacyPolicy";
 
+// Add these to your existing routes array
+
 
 import {
   homeLoader,
