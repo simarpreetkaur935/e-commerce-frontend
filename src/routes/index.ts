@@ -1,27 +1,30 @@
 
 import { createBrowserRouter } from "react-router-dom";
 import MainLayout from "../components/layout/MainLayout.tsx";
+
 import Home from "../pages/Home";
 import Product from "../pages/Product";
 import ProductDetails from "../pages/ProductDetails";
 import Categories from "../pages/Categories";
 import Wishlist from "../pages/Wishlist";
 import Cart from "../pages/Cart";
+import Order from "../pages/Order";
+
 import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
 import ChangePassword from "../pages/changePassword";
+
 import ShippingInformation from "../pages/support/ShippingInformation";
 import ReturnsRefunds from "../pages/support/ReturnsRefunds";
 import TrackOrder from "../pages/support/TrackOrder";
+
 import AboutUs from "../pages/company/AboutUs";
 import OurStory from "../pages/company/OurStory";
 import Careers from "../pages/company/Careers.tsx";
 import ContactUs from "../pages/company/ContactUs";
 import PrivacyPolicy from "../pages/company/PrivacyPolicy";
 
-// Add these to your existing routes array
-
-
+// Loaders
 import {
   homeLoader,
   allProductsLoader,
@@ -31,9 +34,13 @@ import {
   cartLoader,
   profileLoader,
   editProfileLoader,
- 
+  orderLoader,
 } from "../utils/Loaders";
 
+// Actions
+import { createOrderAction } from "../utils/Actions";
+
+// Authentication routes
 import authRoutes from "./auth";
 
 const routes = createBrowserRouter([
@@ -62,8 +69,6 @@ const routes = createBrowserRouter([
         loader: productDetailsLoader,
       },
 
-
-
       // CATEGORIES
       {
         path: "categories",
@@ -90,6 +95,14 @@ const routes = createBrowserRouter([
         loader: cartLoader,
       },
 
+      // ORDER / CHECKOUT
+      {
+        path: "order",
+        Component: Order,
+        loader: orderLoader,
+        action: createOrderAction,
+      },
+
       // PROFILE
       {
         path: "profile",
@@ -109,44 +122,46 @@ const routes = createBrowserRouter([
         path: "change-password",
         Component: ChangePassword,
       },
-  
-{
-  path: "shipping-information",
-  Component: ShippingInformation,
-},
-{
-  path: "returns-refunds",
-  Component: ReturnsRefunds,
-},
-{
-  path: "track-order",
-  Component: TrackOrder,
-},
-// Company routes
-{
-  path: "about-us",
-  Component: AboutUs,
-},
-{
-  path: "our-story",
-  Component: OurStory,
-},
-{
-  path: "careers",
-  Component: Careers,
-},
-{
-  path: "contact-us",
-  Component: ContactUs,
-},
-{
-  path: "privacy-policy",
-  Component: PrivacyPolicy,
-},
 
+      // SUPPORT ROUTES
+      {
+        path: "shipping-information",
+        Component: ShippingInformation,
+      },
+      {
+        path: "returns-refunds",
+        Component: ReturnsRefunds,
+      },
+      {
+        path: "track-order",
+        Component: TrackOrder,
+      },
 
+      // COMPANY ROUTES
+      {
+        path: "about-us",
+        Component: AboutUs,
+      },
+      {
+        path: "our-story",
+        Component: OurStory,
+      },
+      {
+        path: "careers",
+        Component: Careers,
+      },
+      {
+        path: "contact-us",
+        Component: ContactUs,
+      },
+      {
+        path: "privacy-policy",
+        Component: PrivacyPolicy,
+      },
     ],
   },
+
+  // AUTHENTICATION ROUTES
   ...authRoutes,
 ]);
 

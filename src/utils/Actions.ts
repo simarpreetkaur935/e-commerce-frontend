@@ -218,3 +218,47 @@ export const changePasswordAction = async ({
     };
   }
 };
+//order action
+export const createOrderAction = async ({
+  request,
+}: {
+  request: Request;
+}) => {
+  try {
+    const formData = await request.formData();
+
+    const shippingAddress = {
+      street: formData.get("street") as string,
+      city: formData.get("city") as string,
+      state: formData.get("state") as string,
+      country: formData.get("country") as string,
+      pincode: formData.get("pincode") as string,
+    };
+
+    const response = await api.post("/orders", {
+      shippingAddress,
+    });
+
+    if (!response.data.success) {
+      return {
+        success: false,
+        message: response.data.message,
+      };
+    }
+
+    const orderId = response.data.order._id;
+
+    return redirect(
+      `/payment-method?orderId=${orderId}`
+    );
+  } catch (error: any) {
+    console.error("Create Order Error:", error);
+
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Unable to create order",
+    };
+  }
+};

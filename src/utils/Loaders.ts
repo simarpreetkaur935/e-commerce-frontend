@@ -388,3 +388,20 @@ export const editProfileLoader = () => {
       return null;
     });
 };
+//order
+  export const orderLoader = async () => {
+  try {
+    const response = await api.get("/cart");
+
+    if (!response.data.success) {
+      throw new Error("Unable to fetch cart");
+    }
+
+    return {
+      cart: response.data.cart,
+    };
+  } catch (error) {
+    console.error("Order Loader Error:", error);
+    throw error;
+  }
+};
