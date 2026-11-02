@@ -9,6 +9,7 @@ import Categories from "../pages/Categories";
 import Wishlist from "../pages/Wishlist";
 import Cart from "../pages/Cart";
 import Order from "../pages/Order";
+import Address from "../pages/Address";
 
 import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
@@ -20,7 +21,7 @@ import TrackOrder from "../pages/support/TrackOrder";
 
 import AboutUs from "../pages/company/AboutUs";
 import OurStory from "../pages/company/OurStory";
-import Careers from "../pages/company/Careers.tsx";
+import Careers from "../pages/company/Careers";
 import ContactUs from "../pages/company/ContactUs";
 import PrivacyPolicy from "../pages/company/PrivacyPolicy";
 
@@ -35,10 +36,14 @@ import {
   profileLoader,
   editProfileLoader,
   orderLoader,
+  addressLoader,
 } from "../utils/Loaders";
 
 // Actions
-import { createOrderAction } from "../utils/Actions";
+import {
+  createOrderAction,
+  addressAction,
+} from "../utils/Actions";
 
 // Authentication routes
 import authRoutes from "./auth";
@@ -101,6 +106,14 @@ const routes = createBrowserRouter([
         Component: Order,
         loader: orderLoader,
         action: createOrderAction,
+      },
+
+      // ADDRESS MANAGEMENT
+      {
+        path: "addresses",
+        Component: Address,
+        loader: addressLoader,
+        action: addressAction,
       },
 
       // PROFILE

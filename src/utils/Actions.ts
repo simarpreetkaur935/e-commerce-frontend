@@ -219,6 +219,7 @@ export const changePasswordAction = async ({
   }
 };
 //order action
+
 export const createOrderAction = async ({
   request,
 }: {
@@ -227,16 +228,19 @@ export const createOrderAction = async ({
   try {
     const formData = await request.formData();
 
-    const shippingAddress = {
-      street: formData.get("street") as string,
-      city: formData.get("city") as string,
-      state: formData.get("state") as string,
-      country: formData.get("country") as string,
-      pincode: formData.get("pincode") as string,
-    };
+    // Get selected address ID
+    const addressId = formData.get("addressId");
 
+    if (!addressId || typeof addressId !== "string") {
+      return {
+        success: false,
+        message: "Please select a delivery address",
+      };
+    }
+
+    // Create order using selected address ID
     const response = await api.post("/orders", {
-      shippingAddress,
+      addressId,
     });
 
     if (!response.data.success) {
@@ -251,6 +255,7 @@ export const createOrderAction = async ({
     return redirect(
       `/payment-method?orderId=${orderId}`
     );
+
   } catch (error: any) {
     console.error("Create Order Error:", error);
 
@@ -262,3 +267,125 @@ export const createOrderAction = async ({
     };
   }
 };
+//address action
+
+
+
+// Address Action
+export const addressAction = async ({
+  request,
+}: {
+  request: Request;
+}) => {
+  try {
+    const formData = await request.formData();
+
+    const intent = formData.get("intent");
+    const addressId = formData.get("addressId");
+
+    // Add Address
+    if (intent === "add") {
+      const address = {
+        street: formData.get("street") as string,
+        city: formData.get("city") as string,
+        state: formData.get("state") as string,
+        country: formData.get("country") as string,
+        pincode: formData.get("pincode") as string,
+        isDefault: formData.get("isDefault") === "true",
+      };
+
+      const response = await api.post(
+        "/addresses/add",
+        address
+      );
+
+      return {
+        success: response.data.success,
+        message: response.data.message,
+      };
+    }
+
+    // Update Address
+    if (intent === "update") {
+      if (typeof addressId !== "string" || !addressId) {
+        return {
+          success: false,
+          message: "Address ID is required",
+        };
+      }
+
+      const address = {
+        street: formData.get("street") as string,
+        city: formData.get("city") as string,
+        state: formData.get("state") as string,
+        country: formData.get("country") as string,
+        pincode: formData.get("pincode") as string,
+        isDefault: formData.get("isDefault") === "true",
+      };
+
+      const response = await api.put(
+        `/addresses/${addressId}`,
+        address
+      );
+
+      return {
+        success: response.data.success,
+        message: response.data.message,
+      };
+    }
+
+    // Delete Address
+    if (intent === "delete") {
+      if (typeof addressId !== "string" || !addressId) {
+        return {
+          success: false,
+          message: "Address ID is required",
+        };
+      }
+
+      const response = await api.delete(
+        `/addresses/${addressId}`
+      );
+
+      return {
+        success: response.data.success,
+        message: response.data.message,
+      };
+    }
+
+    // Set Default Address
+    if (intent === "default") {
+      if (typeof addressId !== "string" || !addressId) {
+        return {
+          success: false,
+          message: "Address ID is required",
+        };
+      }
+
+      const response = await api.patch(
+        `/addresses/${addressId}/default`
+      );
+
+      return {
+        success: response.data.success,
+        message: response.data.message,
+      };
+    }
+
+    return {
+      success: false,
+      message: "Invalid address action",
+    };
+
+  } catch (error: any) {
+    console.error("Address Action Error:", error);
+
+    return {
+      success: false,
+      message:
+        error.response?.data?.message ||
+        "Unable to process address request",
+    };
+  }
+};
+

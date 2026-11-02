@@ -708,13 +708,13 @@ const CartContent = ({
             </div>
 
             {/* BUY BUTTON */}
-<button
-  type="button"
-  onClick={() => navigate("/order")}
-  className="w-full mt-6 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 rounded-lg transition"
->
-  Proceed to Buy
-</button>
+  <button
+      type="button"
+      onClick={() => navigate("/addresses")}
+      className="w-full mt-6 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-3 rounded-lg transition"
+    >
+      Proceed to Buy
+    </button>
 
             {/* SECURE CHECKOUT */}
 

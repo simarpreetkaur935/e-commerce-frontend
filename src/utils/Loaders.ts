@@ -388,20 +388,49 @@ export const editProfileLoader = () => {
       return null;
     });
 };
-//order
-  export const orderLoader = async () => {
+// Order Loader
+export const orderLoader = async () => {
   try {
-    const response = await api.get("/cart");
+    // Fetch cart
+    const cartResponse = await api.get("/cart");
 
-    if (!response.data.success) {
+    if (!cartResponse.data.success) {
       throw new Error("Unable to fetch cart");
     }
 
+    // Fetch saved addresses
+    const addressResponse = await api.get("/addresses");
+
+    if (!addressResponse.data.success) {
+      throw new Error("Unable to fetch addresses");
+    }
+
     return {
-      cart: response.data.cart,
+      cart: cartResponse.data.cart,
+      addresses: addressResponse.data.data,
     };
+
   } catch (error) {
     console.error("Order Loader Error:", error);
+    throw error;
+  }
+};
+//address lader
+
+// Address Loader
+export const addressLoader = async () => {
+  try {
+    const response = await api.get("/addresses");
+
+    if (!response.data.success) {
+      throw new Error("Unable to fetch addresses");
+    }
+
+    return {
+      addresses: response.data.data,
+    };
+  } catch (error) {
+    console.error("Address Loader Error:", error);
     throw error;
   }
 };
