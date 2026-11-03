@@ -299,46 +299,33 @@ export const wishlistLoader = () => {
 import { redirect } from "react-router-dom";
 
 // GET CART LOADER
-export const cartLoader = () => {
-  const token =
-    localStorage.getItem("accessToken");
-
-  // =========================
-  // GUEST USER
-  // =========================
+export const cartLoader = async () => {
+  const token = localStorage.getItem("accessToken");
 
   if (!token) {
     return redirect("/login");
   }
 
-  // =========================
-  // LOGGED-IN USER
-  // =========================
+  try {
+    const response = await api.get("/cart");
 
-  const cart = api
-    .get("/cart")
-    .then((response) => {
-      if (response.data.success) {
-        return response.data.cart;
-      }
+    console.log("Complete Cart Response:", response.data);
+    console.log("Cart Data:", response.data.cart);
 
-      return [];
-    })
-    .catch((error: any) => {
-      console.error(
-        "Get Cart Error:",
-        error.response?.data?.message ||
-          error.message
-      );
+    return {
+      cart: response.data.cart,
+    };
+  } catch (error: any) {
+    console.error(
+      "Get Cart Error:",
+      error.response?.data?.message || error.message
+    );
 
-      return [];
-    });
-
-  return {
-    cart,
-  };
+    return {
+      cart: [],
+    };
+  }
 };
-//profile
 // =========================
 // GET MY PROFILE
 // =========================
@@ -434,3 +421,5 @@ export const addressLoader = async () => {
     throw error;
   }
 };
+
+

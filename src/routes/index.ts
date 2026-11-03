@@ -9,7 +9,7 @@ import Categories from "../pages/Categories";
 import Wishlist from "../pages/Wishlist";
 import Cart from "../pages/Cart";
 import Order from "../pages/Order";
-import Address from "../pages/Address";
+import Checkout from "../pages/Checkout";
 
 import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
@@ -36,13 +36,11 @@ import {
   profileLoader,
   editProfileLoader,
   orderLoader,
-  addressLoader,
 } from "../utils/Loaders";
 
 // Actions
 import {
   createOrderAction,
-  addressAction,
 } from "../utils/Actions";
 
 // Authentication routes
@@ -100,20 +98,19 @@ const routes = createBrowserRouter([
         loader: cartLoader,
       },
 
-      // ORDER / CHECKOUT
+      // CHECKOUT PAGE
+      {
+        path: "checkout",
+        Component: Checkout,
+        loader: cartLoader,
+      },
+
+      // ORDER PAGE
       {
         path: "order",
         Component: Order,
         loader: orderLoader,
         action: createOrderAction,
-      },
-
-      // ADDRESS MANAGEMENT
-      {
-        path: "addresses",
-        Component: Address,
-        loader: addressLoader,
-        action: addressAction,
       },
 
       // PROFILE
