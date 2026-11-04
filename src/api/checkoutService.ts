@@ -1,13 +1,13 @@
 
 import api from "./axios";
 
-// ─── Types ────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────
 
 export interface ICartItem {
   product: string;
   name: string;
   quantity: number;
-  price: number; // in paise (e.g. ₹499 = 49900)
+  price: number;
   image?: string;
 }
 
@@ -27,8 +27,6 @@ export interface ICheckoutPayload {
   paymentMethod: "stripe" | "cod";
 }
 
-// ─── Price Details ────────────────────────────────────────────
-
 export interface IPriceDetails {
   originalSubtotal: number;
   subtotal: number;
@@ -38,7 +36,7 @@ export interface IPriceDetails {
   totalAmount: number;
 }
 
-// ─── Get Payment Summary ──────────────────────────────────────
+// ─── Payment Summary ───────────────────────────────────
 
 export const getPaymentSummary = async (
   paymentMethod: "stripe" | "cod"
@@ -50,40 +48,47 @@ export const getPaymentSummary = async (
   return response.data.priceDetails;
 };
 
-// ─── Stripe ───────────────────────────────────────────────────
+// ─── Stripe Checkout Session ───────────────────────────
 
 export const createStripeCheckoutSession = async (
   payload: ICheckoutPayload
-): Promise<void> => {
-  const response = await api.post("/orders/checkout/stripe", payload);
+): Promise<{ clientSecret: string }> => {
+  const response = await api.post(
+    "/orders/checkout/stripe",
+    payload
+  );
 
-  const { url } = response.data;
+  const { clientSecret } = response.data;
 
-  if (!url) {
-    throw new Error("No checkout URL received.");
+  if (!clientSecret) {
+    throw new Error("Stripe client secret not received.");
   }
 
-  window.location.href = url;
+  return { clientSecret };
 };
 
-// ─── COD ──────────────────────────────────────────────────────
+// ─── Cash On Delivery ───────────────────────────────────
 
 export const createCODOrder = async (
   payload: ICheckoutPayload
 ): Promise<{ orderId: string }> => {
-  const response = await api.post("/orders/checkout/cod", payload);
+  const response = await api.post(
+    "/orders/checkout/cod",
+    payload
+  );
 
   return response.data;
 };
 
-// ─── Verify Payment ───────────────────────────────────────────
+// ─── Verify Payment ─────────────────────────────────────
 
 export const verifyStripePayment = async (
   sessionId: string
 ): Promise<{ success: boolean; orderId: string }> => {
-  const response = await api.post("/orders/verify-payment", {
-    sessionId,
-  });
+  const response = await api.post(
+    "/orders/verify-payment",
+    { sessionId }
+  );
 
   return response.data;
 };
