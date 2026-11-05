@@ -48,23 +48,53 @@ export const getPaymentSummary = async (
   return response.data.priceDetails;
 };
 
-// ─── Stripe Checkout Session ───────────────────────────
+// ─── Create Order ──────────────────────────────────────
 
-export const createStripeCheckoutSession = async (
+export const createOrder = async (
   payload: ICheckoutPayload
-): Promise<{ clientSecret: string }> => {
-  const response = await api.post(
-    "/orders/checkout/stripe",
-    payload
-  );
+): Promise<{ orderId: string }> => {
+  const response = await api.post("/orders", {
+    shippingAddress: payload.shippingAddress,
 
-  const { clientSecret } = response.data;
+    // Order controller accepts credit_card for Stripe.
+    paymentMethod:
+      payload.paymentMethod === "stripe"
+        ? "credit_card"
+        : "cod",
+  });
 
-  if (!clientSecret) {
-    throw new Error("Stripe client secret not received.");
+  const orderId = response.data.order?._id;
+
+  if (!orderId) {
+    throw new Error("Order ID was not received.");
   }
 
-  return { clientSecret };
+  return { orderId };
+};
+
+// ─── Create Stripe PaymentIntent ───────────────────────
+
+export const createStripePaymentIntent = async (
+  orderId: string
+): Promise<{
+  clientSecret: string;
+  paymentIntentId: string;
+}> => {
+  const response = await api.post("/payments/create", {
+    orderId,
+    paymentMethod: "stripe",
+  });
+
+  const { clientSecret, paymentIntentId } = response.data;
+
+  if (!clientSecret || !paymentIntentId) {
+    throw new Error("Stripe payment details were not received.");
+  }
+
+  return {
+    clientSecret,
+    paymentIntentId,
+  };
 };
 
 // ─── Cash On Delivery ───────────────────────────────────
@@ -72,23 +102,37 @@ export const createStripeCheckoutSession = async (
 export const createCODOrder = async (
   payload: ICheckoutPayload
 ): Promise<{ orderId: string }> => {
-  const response = await api.post(
-    "/orders/checkout/cod",
-    payload
-  );
+  // First create the order.
 
-  return response.data;
+  const { orderId } = await createOrder({
+    ...payload,
+    paymentMethod: "cod",
+  });
+
+  // Then create the COD payment record.
+
+  await api.post("/payments/create", {
+    orderId,
+    paymentMethod: "cod",
+  });
+
+  return { orderId };
 };
 
-// ─── Verify Payment ─────────────────────────────────────
+// ─── Verify Stripe Payment ─────────────────────────────
 
 export const verifyStripePayment = async (
-  sessionId: string
-): Promise<{ success: boolean; orderId: string }> => {
-  const response = await api.post(
-    "/orders/verify-payment",
-    { sessionId }
-  );
+  paymentIntentId: string
+): Promise<{
+  success: boolean;
+  orderId: string;
+}> => {
+  const response = await api.post("/payments/verify", {
+    paymentIntentId,
+  });
 
-  return response.data;
+  return {
+    success: response.data.success,
+    orderId: response.data.order?._id,
+  };
 };

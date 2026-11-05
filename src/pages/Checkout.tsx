@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 
-import { CheckoutElementsProvider } from "@stripe/react-stripe-js/checkout";
+import {
+  Elements,
+  PaymentElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 
 import api from "../api/axios";
 
 import Address from "../components/checkout/Address";
-import Payment, { StripeCheckoutForm } from "../components/checkout/Payment";
+import Payment from "../components/checkout/Payment";
 
 import { stripePromise } from "../config/stripe.config";
+// import PaymentForm from "../components/payment/Form";
 
 type AccordionSection = "address" | "payment";
 
@@ -26,10 +32,111 @@ interface CartItem {
   price?: number;
 }
 
+interface StripeFormProps {
+  paymentIntentId: string;
+  orderId: string;
+}
+
+const StripePaymentForm = ({ paymentIntentId, orderId }: StripeFormProps) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!stripe || !elements) {
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/order-success/${orderId}`,
+        },
+        redirect: "if_required",
+      });
+
+      if (result.error) {
+        setError(result.error.message || "Payment failed.");
+        return;
+      }
+
+      if (result.paymentIntent?.status !== "succeeded") {
+        setError("Payment has not been completed.");
+        return;
+      }
+
+      const response = await api.post("/payments/verify", {
+        paymentIntentId,
+      });
+
+      if (response.data.success) {
+        navigate(`/order-success/${orderId}`);
+      }
+    } catch (error: any) {
+      setError(
+        error.response?.data?.message ||
+          error.message ||
+          "Unable to verify payment.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // return (
+  //   <form onSubmit={handleSubmit} className="space-y-5">
+  //     <PaymentElement />
+
+  //     {/* <Elements stripe={stripePromise}> */}
+  //       <StripePaymentForm
+  //         paymentIntentId={paymentIntentId!}
+  //         orderId={orderId!}
+  //       />
+  //     {/* </Elements> */}
+
+  //     {error && <p className="text-red-600 text-sm">{error}</p>}
+
+  //     <button
+  //       type="submit"
+  //       disabled={!stripe || !elements || loading}
+  //       className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-gray-900 font-semibold py-3 rounded-lg"
+  //     >
+  //       {loading ? "Processing..." : "Pay Now"}
+  //     </button>
+  //   </form>
+  // );
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <PaymentElement />
+
+      {error && <p className="text-red-600 text-sm">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={!stripe || !elements || loading}
+        className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-gray-900 font-semibold py-3 rounded-lg"
+      >
+        {loading ? "Processing..." : "Pay Now"}
+      </button>
+    </form>
+  );
+};
+
 const Checkout = () => {
   const { cart } = useLoaderData() as {
     cart: CartItem[];
   };
+
+  const navigate = useNavigate();
 
   const [activeSection, setActiveSection] =
     useState<AccordionSection>("address");
@@ -40,14 +147,14 @@ const Checkout = () => {
     "stripe",
   );
 
-  // Stripe states
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
 
-  const [stripeLoading, setStripeLoading] = useState(false);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
 
-  const [stripeError, setStripeError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  // Calculate subtotal
   const subtotal = cart.reduce((total, item) => {
     const price =
       item.price ?? (typeof item.product === "object" ? item.product.price : 0);
@@ -55,59 +162,118 @@ const Checkout = () => {
     return total + price * item.quantity;
   }, 0);
 
-  // Create Stripe Checkout Session
+  // CREATE ORDER AND PAYMENT
+
   const handleContinueToPayment = async () => {
     if (!selectedAddressId) {
-      setStripeError("Please select a delivery address.");
+      setError("Please select a delivery address.");
       return;
     }
 
-    setActiveSection("payment");
-
-    if (paymentMethod === "cod" || clientSecret) {
-      return;
-    }
-
-    setStripeLoading(true);
-    setStripeError("");
+    setLoading(true);
+    setError("");
 
     try {
-      const response = await api.post("/orders/checkout/stripe", {
-        addressId: selectedAddressId,
+      let currentOrderId = orderId;
+
+      // CREATE ORDER ONLY ONCE
+
+      if (!currentOrderId) {
+        const orderResponse = await api.post("/orders", {
+          addressId: selectedAddressId,
+          paymentMethod: paymentMethod === "stripe" ? "credit_card" : "cod",
+        });
+
+        currentOrderId = orderResponse.data.order?._id;
+
+        if (!currentOrderId) {
+          throw new Error("Order ID was not received.");
+        }
+
+        setOrderId(currentOrderId);
+      }
+
+      // CASH ON DELIVERY
+
+      if (paymentMethod === "cod") {
+        await api.post("/payments/create", {
+          orderId: currentOrderId,
+          paymentMethod: "cod",
+        });
+
+        navigate(`/order-success/${currentOrderId}`);
+        return;
+      }
+
+      // STRIPE PAYMENT INTENT
+
+      const paymentResponse = await api.post("/payments", {
+        orderId: currentOrderId,
+        paymentMethod: "stripe",
       });
 
-      const secret = response.data.clientSecret;
+      const { clientSecret: secret, paymentIntentId: intentId } =
+        paymentResponse.data;
 
-      if (!secret) {
-        throw new Error("Stripe client secret not received.");
+      if (!secret || !intentId) {
+        throw new Error("Stripe payment details were not received.");
       }
 
       setClientSecret(secret);
+      setPaymentIntentId(intentId);
+      setActiveSection("payment");
     } catch (error: any) {
-      setStripeError(
+      console.error("Checkout Error:", error);
+
+      setError(
         error.response?.data?.message ||
           error.message ||
-          "Unable to initialize Stripe payment.",
+          "Unable to initialize checkout.",
       );
     } finally {
-      setStripeLoading(false);
+      setLoading(false);
     }
   };
 
-  // Change payment method
+  // CHANGE PAYMENT METHOD
+
+  // {
+  //   paymentMethod === "stripe" && (
+  //     <div className="mt-5">
+  //       {!clientSecret ? (
+  //         <button
+  //           type="button"
+  //           disabled={!selectedAddressId || loading}
+  //           onClick={handleContinueToPayment}
+  //           className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-gray-900 font-semibold py-3 rounded-lg"
+  //         >
+  //           {loading ? "Preparing Payment..." : "Continue to Payment"}
+  //         </button>
+  //       ) : (
+  //         <Elements stripe={stripePromise} options={{ clientSecret }}>
+  //           <StripePaymentForm
+  //             paymentIntentId={paymentIntentId!}
+  //             orderId={orderId!}
+  //           />
+  //         </Elements>
+  //       )}
+  //     </div>
+  //   );
+  // }
+
   const handlePaymentMethodChange = (method: "stripe" | "cod") => {
     setPaymentMethod(method);
-    setStripeError("");
+    setError("");
 
-    if (method === "cod") {
-      setClientSecret(null);
-    }
+    // If the method changes, create the matching payment
+    // for the already-created order when continuing.
+    setClientSecret(null);
+    setPaymentIntentId(null);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-5xl mx-auto">
-        {/* PAGE HEADING */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Checkout</h1>
 
@@ -117,7 +283,8 @@ const Checkout = () => {
         </div>
 
         <div className="space-y-5">
-          {/* 1. DELIVERY ADDRESS */}
+          {/* DELIVERY ADDRESS */}
+
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <button
               type="button"
@@ -155,24 +322,22 @@ const Checkout = () => {
                 <div className="flex justify-end mt-6">
                   <button
                     type="button"
-                    disabled={!selectedAddressId || stripeLoading}
-                    onClick={handleContinueToPayment}
+                    disabled={!selectedAddressId || loading}
+                    onClick={() => {
+                      setActiveSection("payment");
+                      setError("");
+                    }}
                     className="bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-gray-900 font-semibold px-6 py-3 rounded-lg transition"
                   >
-                    {stripeLoading
-                      ? "Preparing Payment..."
-                      : "Continue to Payment"}
+                    Continue to Payment
                   </button>
                 </div>
-
-                {stripeError && (
-                  <p className="text-red-600 text-sm mt-3">{stripeError}</p>
-                )}
               </div>
             )}
           </div>
 
-          {/* 2. PAYMENT METHOD */}
+          {/* PAYMENT METHOD */}
+
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <button
               type="button"
@@ -202,46 +367,50 @@ const Checkout = () => {
 
             {activeSection === "payment" && (
               <div className="border-t border-gray-200 p-5">
-                {/* PAYMENT SELECTION */}
                 <Payment
                   paymentMethod={paymentMethod}
                   onPaymentMethodChange={handlePaymentMethodChange}
                 />
 
-                {/* STRIPE PAYMENT FORM */}
                 {paymentMethod === "stripe" && (
                   <div className="mt-5">
-                    {stripeLoading && (
-                      <p className="text-gray-500 text-sm">
-                        Preparing Stripe payment...
-                      </p>
-                    )}
-
-                    {stripeError && (
-                      <p className="text-red-600 text-sm mb-4">{stripeError}</p>
-                    )}
-
-                    {clientSecret && (
-                      <CheckoutElementsProvider
+                    {clientSecret && paymentIntentId && orderId ? (
+                      <Elements
                         stripe={stripePromise}
                         options={{ clientSecret }}
                       >
-                        <StripeCheckoutForm />
-                      </CheckoutElementsProvider>
-                    )}
-
-                    {!clientSecret && !stripeLoading && (
+                        <StripePaymentForm
+                          paymentIntentId={paymentIntentId}
+                          orderId={orderId}
+                        />
+                      </Elements>
+                    ) : (
                       <button
                         type="button"
-                        disabled={!selectedAddressId}
+                        disabled={!selectedAddressId || loading}
                         onClick={handleContinueToPayment}
                         className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-gray-900 font-semibold py-3 rounded-lg"
                       >
-                        Initialize Stripe Payment
+                        {loading
+                          ? "Preparing Payment..."
+                          : "Initialize Stripe Payment"}
                       </button>
                     )}
                   </div>
                 )}
+
+                {paymentMethod === "cod" && (
+                  <button
+                    type="button"
+                    disabled={!selectedAddressId || loading}
+                    onClick={handleContinueToPayment}
+                    className="w-full mt-5 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-300 text-gray-900 font-semibold py-3 rounded-lg"
+                  >
+                    {loading ? "Placing Order..." : "Place Order"}
+                  </button>
+                )}
+
+                {error && <p className="text-red-600 text-sm mt-4">{error}</p>}
 
                 <div className="flex justify-end mt-6">
                   <button
@@ -256,13 +425,13 @@ const Checkout = () => {
             )}
           </div>
 
-          {/* 3. ORDER SUMMARY */}
+          {/* ORDER SUMMARY */}
+
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
             <h2 className="font-semibold text-xl text-gray-900 mb-5">
               Order Summary
             </h2>
 
-            {/* CART ITEMS */}
             {cart.length === 0 ? (
               <p className="text-gray-500">Your cart is empty.</p>
             ) : (
@@ -297,7 +466,6 @@ const Checkout = () => {
               </div>
             )}
 
-            {/* PRICE DETAILS */}
             <div className="mt-6 space-y-3">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
@@ -315,7 +483,6 @@ const Checkout = () => {
               </div>
             </div>
 
-            {/* SELECTED PAYMENT */}
             <div className="mt-5 text-sm text-gray-600">
               Payment Method:{" "}
               <span className="font-semibold text-gray-900">
