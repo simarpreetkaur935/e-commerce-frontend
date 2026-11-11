@@ -53,7 +53,7 @@ interface CartItem {
 // =================================================
 
 const formatPrice = (amount: number) =>
-  `₹${(amount / 100).toLocaleString("en-IN", {
+  `₹${amount.toLocaleString("en-IN", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

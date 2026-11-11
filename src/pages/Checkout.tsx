@@ -25,6 +25,7 @@ interface CartItem {
         _id: string;
         name: string;
         price: number;
+        discountPrice?: number;
         image?: string;
       }
     | string;
@@ -155,13 +156,28 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const subtotal = cart.reduce((total, item) => {
-    const price =
-      item.price ?? (typeof item.product === "object" ? item.product.price : 0);
+  const getEffectivePrice = (item: CartItem) => {
+    const product = typeof item.product === "object" ? item.product : null;
 
-    return total + price * item.quantity;
+    if (
+      product?.discountPrice != null &&
+      product.discountPrice < product.price
+    ) {
+      return product.discountPrice;
+    }
+
+    return item.price ?? product?.price ?? 0;
+  };
+
+  const subtotal = cart.reduce((total, item) => {
+    return total + getEffectivePrice(item) * item.quantity;
   }, 0);
 
+  const tax = subtotal * 0.18;
+
+  const codCharge = paymentMethod === "cod" ? subtotal * 0.1 : 0;
+
+  const totalAmount = subtotal + tax + codCharge;
   // CREATE ORDER AND PAYMENT
 
   const handleContinueToPayment = async () => {
@@ -440,7 +456,7 @@ const Checkout = () => {
                   const product =
                     typeof item.product === "object" ? item.product : null;
 
-                  const price = item.price ?? product?.price ?? 0;
+                  const price = getEffectivePrice(item);
 
                   return (
                     <div
@@ -458,7 +474,7 @@ const Checkout = () => {
                       </div>
 
                       <p className="font-semibold text-gray-900">
-                        ₹{((price * item.quantity) / 100).toFixed(2)}
+                        ₹{(price * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   );
@@ -469,7 +485,12 @@ const Checkout = () => {
             <div className="mt-6 space-y-3">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>₹{(subtotal / 100).toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between text-gray-600">
+                <span>GST (18%)</span>
+                <span>₹{tax.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between text-gray-600">
@@ -477,9 +498,16 @@ const Checkout = () => {
                 <span className="text-green-600">Free</span>
               </div>
 
+              {paymentMethod === "cod" && (
+                <div className="flex justify-between text-gray-600">
+                  <span>COD Charges (10%)</span>
+                  <span>₹{codCharge.toFixed(2)}</span>
+                </div>
+              )}
+
               <div className="border-t border-gray-200 pt-4 flex justify-between font-bold text-lg text-gray-900">
                 <span>Total</span>
-                <span>₹{(subtotal / 100).toFixed(2)}</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
               </div>
             </div>
 
