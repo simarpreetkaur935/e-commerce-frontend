@@ -10,6 +10,7 @@ import Wishlist from "../pages/Wishlist";
 import Cart from "../pages/Cart";
 import Order from "../pages/Order";
 import Checkout from "../pages/Checkout";
+import OrderSuccess from "../pages/OrderSuccess";
 
 import Profile from "../pages/Profile";
 import EditProfile from "../pages/EditProfile";
@@ -105,6 +106,12 @@ const routes = createBrowserRouter([
         path: "checkout",
         Component: Checkout,
         loader: cartLoader,
+      },
+
+      // ORDER CONFIRMATION (Stripe return URL and COD success)
+      {
+        path: "order-success/:orderId",
+        Component: OrderSuccess,
       },
 
       // ORDER PAGE
