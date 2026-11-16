@@ -17,10 +17,16 @@ interface Product {
 
 interface RelatedProductsProps {
   products: Product[];
+  title?: string;
+  viewAllLink?: string;
+  onAddToCart?: (product: Product) => void;
 }
 
 const RelatedProducts = ({
   products,
+  title = "Related Products",
+  viewAllLink,
+  onAddToCart,
 }: RelatedProductsProps) => {
   return (
     <section className="mt-16">
@@ -29,9 +35,19 @@ const RelatedProducts = ({
           SECTION TITLE
       ================================================= */}
 
-      <h2 className="text-2xl font-bold mb-6">
-        Related Products
-      </h2>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold">
+          {title}
+        </h2>
+        {viewAllLink && (
+          <Link
+            to={viewAllLink}
+            className="shrink-0 font-medium text-gray-700 hover:text-black hover:underline"
+          >
+            View All <span aria-hidden="true">→</span>
+          </Link>
+        )}
+      </div>
 
       {/* =================================================
           PRODUCTS
@@ -143,12 +159,24 @@ const RelatedProducts = ({
 
                 {/* View Details */}
 
-                <Link
-                  to={`/products/${product._id}`}
-                  className="block text-center mt-4 border border-gray-300 hover:bg-gray-100 py-2 rounded-md font-medium transition"
-                >
-                  View Details
-                </Link>
+                <div className="mt-4 flex gap-2">
+                  <Link
+                    to={`/products/${product._id}`}
+                    className="flex-1 text-center border border-gray-300 hover:bg-gray-100 py-2 rounded-md font-medium transition"
+                  >
+                    View Details
+                  </Link>
+                  {onAddToCart && (
+                    <button
+                      type="button"
+                      onClick={() => onAddToCart(product)}
+                      disabled={product.stock === 0}
+                      className="flex-1 rounded-md bg-yellow-400 py-2 font-semibold text-black transition hover:bg-yellow-500 disabled:bg-gray-300"
+                    >
+                      Add to Cart
+                    </button>
+                  )}
+                </div>
 
               </div>
             </div>

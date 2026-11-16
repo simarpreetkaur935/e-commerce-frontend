@@ -112,14 +112,38 @@ export const homeLoader = async ({
   const url = new URL(request.url);
   const search = url.searchParams.get("search")?.trim() || "";
 
-  const [productsData, categoriesData] = await Promise.all([
-    products(search),
-    categories(),
-  ]);
+  if (search) {
+    return {
+      products: Promise.resolve(await products(search)),
+      categories: [],
+      newArrivals: [],
+      bestSellers: [],
+      todaysDeals: [],
+      offers: [],
+    };
+  }
+
+  const [productsData, categoriesData, newArrivalsData, bestSellersData] =
+    await Promise.all([
+      products(),
+      categories(),
+      products(undefined, undefined, "new-arrivals"),
+      products(undefined, undefined, "best-sellers"),
+    ]);
+
+  const discountedProducts = productsData.products.filter(
+    (product: any) =>
+      product.discountPrice != null &&
+      product.discountPrice < product.price
+  );
 
   return {
     products: Promise.resolve(productsData),
-    categories: categoriesData,
+    categories: Array.isArray(categoriesData) ? categoriesData : [],
+    newArrivals: newArrivalsData.products,
+    bestSellers: bestSellersData.products,
+    todaysDeals: discountedProducts,
+    offers: discountedProducts,
     search,
   };
 };

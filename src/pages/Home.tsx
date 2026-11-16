@@ -9,6 +9,7 @@ import {
 } from "react-router-dom";
 import { toast } from "react-toastify";
 import api from "../api/axios";
+import RelatedProducts from "../components/layout/RelatedProducts";
 
 interface Product {
   _id: string;
@@ -31,6 +32,13 @@ interface Product {
   isActive: boolean;
   isFeatured: boolean;
   createdAt: string;
+}
+
+interface Category {
+  _id: string;
+  name: string;
+  description?: string;
+  image?: string;
 }
 
 interface Cursor {
@@ -56,8 +64,20 @@ interface ProductsResponse {
 const LIMIT = 8;
 
 const Home = () => {
-  const { products } = useLoaderData() as {
+  const {
+    products,
+    categories,
+    newArrivals,
+    bestSellers,
+    todaysDeals,
+    offers,
+  } = useLoaderData() as {
     products: Promise<ProductsResponse>;
+    categories: Category[];
+    newArrivals: Product[];
+    bestSellers: Product[];
+    todaysDeals: Product[];
+    offers: Product[];
   };
 
   const navigate = useNavigate();
@@ -87,7 +107,7 @@ const Home = () => {
   }, [location.search]);
 
   // ADD TO CART
-  const addToCart = async (product: Product) => {
+  const addToCart = async (product: Pick<Product, "_id">) => {
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
@@ -140,6 +160,109 @@ const Home = () => {
           }
         >
           {(productsData: ProductsResponse) => {
+            if (!searchTerm) {
+              return (
+                <main className="mx-auto max-w-7xl">
+                  <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-950 via-gray-900 to-amber-900 px-6 py-12 text-white sm:px-10 lg:px-14 lg:py-16">
+                    <div className="relative z-10 max-w-2xl">
+                      <span className="inline-flex rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
+                        The season’s best finds
+                      </span>
+                      <h1 className="mt-5 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+                        Good things are just a click away.
+                      </h1>
+                      <p className="mt-4 max-w-xl text-base leading-7 text-gray-200 sm:text-lg">
+                        Discover new favorites, shop customer-loved picks, and enjoy special prices across the store.
+                      </p>
+                      <div className="mt-8 flex flex-wrap gap-3">
+                        <Link
+                          to="/products"
+                          className="rounded-md bg-yellow-400 px-6 py-3 font-semibold text-gray-950 transition hover:bg-yellow-300"
+                        >
+                          Shop all products
+                        </Link>
+                        <Link
+                          to="/products?type=offers"
+                          className="rounded-md border border-white/40 px-6 py-3 font-semibold text-white transition hover:bg-white/10"
+                        >
+                          Explore offers
+                        </Link>
+                      </div>
+                    </div>
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-24 h-80 w-80 rounded-full bg-yellow-400/20 blur-3xl sm:right-0 sm:top-0" />
+                    <div aria-hidden="true" className="pointer-events-none absolute bottom-0 right-8 hidden text-[180px] leading-none text-white/10 lg:block">✦</div>
+                    <p aria-hidden="true" className="absolute bottom-8 right-12 hidden max-w-48 text-right text-sm font-medium uppercase tracking-[0.2em] text-white/60 lg:block">
+                      Find something<br />you’ll love
+                    </p>
+                  </section>
+
+                  <section className="mt-14">
+                    <div className="mb-6 flex items-end justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-wider text-amber-700">Find your kind of thing</p>
+                        <h2 className="mt-1 text-2xl font-bold text-gray-900 sm:text-3xl">Shop by Categories</h2>
+                      </div>
+                      <Link to="/categories" className="shrink-0 font-medium text-gray-700 hover:text-black hover:underline">
+                        View All Categories <span aria-hidden="true">→</span>
+                      </Link>
+                    </div>
+                    {categories.length ? (
+                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                        {categories.slice(0, 8).map((category) => (
+                          <Link
+                            key={category._id}
+                            to={`/categories/${category._id}`}
+                            className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:-translate-y-1 hover:shadow-lg"
+                          >
+                            <div className="flex h-32 items-center justify-center overflow-hidden bg-gray-100 sm:h-40">
+                              {category.image ? (
+                                <img src={category.image} alt={category.name} className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                              ) : (
+                                <span className="text-4xl font-bold text-gray-300">{category.name.charAt(0).toUpperCase()}</span>
+                              )}
+                            </div>
+                            <div className="p-4">
+                              <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                              {category.description && <p className="mt-1 line-clamp-2 text-sm text-gray-500">{category.description}</p>}
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="rounded-lg border border-dashed border-gray-300 py-8 text-center text-gray-500">Categories are unavailable right now.</p>
+                    )}
+                  </section>
+
+                  <div className="mt-4">
+                    <RelatedProducts
+                      products={newArrivals.slice(0, 4)}
+                      title="New Arrivals"
+                      viewAllLink="/products?type=new-arrivals"
+                      onAddToCart={addToCart}
+                    />
+                    <RelatedProducts
+                      products={bestSellers.slice(0, 4)}
+                      title="Best Sellers"
+                      viewAllLink="/products?type=best-sellers"
+                      onAddToCart={addToCart}
+                    />
+                    <RelatedProducts
+                      products={todaysDeals.slice(0, 4)}
+                      title="Today’s Deals"
+                      viewAllLink="/products?type=todays-deals"
+                      onAddToCart={addToCart}
+                    />
+                    <RelatedProducts
+                      products={offers.slice(0, 4)}
+                      title="Offers"
+                      viewAllLink="/products?type=offers"
+                      onAddToCart={addToCart}
+                    />
+                  </div>
+                </main>
+              );
+            }
+
             const visibleData =
               currentPage === 1
                 ? productsData
