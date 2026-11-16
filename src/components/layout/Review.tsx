@@ -1,5 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useFetcher } from "react-router-dom";
+import {
+  Link,
+  useActionData,
+  useNavigation,
+  useSubmit,
+} from "react-router-dom";
 import { toast } from "react-toastify";
 import type { Review as ReviewData } from "../../api/reviewService";
 
@@ -16,11 +21,21 @@ const Review = ({
   averageRating,
   myReview,
 }: ReviewProps) => {
-  const fetcher = useFetcher<{ success: boolean; action?: string }>();
+  const submit = useSubmit();
+  const navigation = useNavigation();
+  const actionData = useActionData() as
+    | { success?: boolean; action?: string }
+    | undefined;
   const authenticated = Boolean(localStorage.getItem("accessToken"));
   const [editing, setEditing] = useState(false);
   const [rating, setRating] = useState(myReview?.rating ?? 0);
   const [comment, setComment] = useState(myReview?.comment ?? "");
+  const reviewAction = navigation.formData?.get("_action");
+  const isSubmitting =
+    navigation.state !== "idle" &&
+    ["createReview", "updateReview", "deleteReview"].includes(
+      String(reviewAction)
+    );
 
   useEffect(() => {
     setRating(myReview?.rating ?? 0);
@@ -28,21 +43,28 @@ const Review = ({
   }, [myReview?._id, myReview?.rating, myReview?.comment]);
 
   useEffect(() => {
-    if (fetcher.data?.success) setEditing(false);
-  }, [fetcher.data?.success]);
+    if (actionData?.success) setEditing(false);
+  }, [actionData?.success]);
 
-  const validateRating = (event: FormEvent<HTMLFormElement>) => {
+  const submitReview = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (rating < 1 || rating > 5) {
-      event.preventDefault();
       toast.error("Choose a rating from 1 to 5 stars.");
       return;
     }
 
     const formData = new FormData(event.currentTarget);
     if (!String(formData.get("comment") ?? "").trim()) {
-      event.preventDefault();
       toast.error("Please enter a comment.");
+      return;
     }
+
+    submit(event.currentTarget, { method: "post" });
+  };
+
+  const submitDelete = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    submit(event.currentTarget, { method: "post" });
   };
 
   return (
@@ -68,18 +90,18 @@ const Review = ({
               </p>
               <div className="flex gap-2">
                 <button type="button" onClick={() => setEditing(true)} className="rounded border px-3 py-2 text-sm hover:bg-gray-50">Edit</button>
-                <fetcher.Form method="post">
+                <form method="post" onSubmit={submitDelete}>
                   <input type="hidden" name="_action" value="deleteReview" />
                   <input type="hidden" name="reviewId" value={myReview._id} />
                   <input type="hidden" name="productId" value={productId} />
-                  <button type="submit" disabled={fetcher.state !== "idle"} className="rounded border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50">
-                    {fetcher.state !== "idle" ? "Deleting…" : "Delete"}
+                  <button type="submit" disabled={isSubmitting} className="rounded border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-50">
+                    {isSubmitting ? "Deleting…" : "Delete"}
                   </button>
-                </fetcher.Form>
+                </form>
               </div>
             </div>
           ) : (
-            <fetcher.Form method="post" onSubmit={validateRating} className="space-y-4">
+            <form method="post" onSubmit={submitReview} className="space-y-4">
               <input type="hidden" name="_action" value={myReview ? "updateReview" : "createReview"} />
               <input type="hidden" name="productId" value={productId} />
               {myReview && <input type="hidden" name="reviewId" value={myReview._id} />}
@@ -97,12 +119,12 @@ const Review = ({
                 <textarea id={`review-comment-${productId}`} name="comment" value={comment} onChange={(event) => setComment(event.target.value)} rows={4} required className="mt-2 block w-full rounded-md border border-gray-300 p-3 font-normal focus:border-gray-500 focus:outline-none" placeholder="Share what you think about this product" />
               </label>
               <div className="flex gap-3">
-                <button type="submit" disabled={fetcher.state !== "idle"} className="rounded-md bg-black px-5 py-2.5 text-white hover:bg-gray-800 disabled:opacity-50">
-                  {fetcher.state !== "idle" ? "Saving…" : myReview ? "Save changes" : "Submit review"}
+                <button type="submit" disabled={isSubmitting} className="rounded-md bg-black px-5 py-2.5 text-white hover:bg-gray-800 disabled:opacity-50">
+                  {isSubmitting ? "Saving…" : myReview ? "Save changes" : "Submit review"}
                 </button>
                 {editing && <button type="button" onClick={() => { setEditing(false); setRating(myReview?.rating ?? 0); setComment(myReview?.comment ?? ""); }} className="rounded-md border px-5 py-2.5 hover:bg-gray-50">Cancel</button>}
               </div>
-            </fetcher.Form>
+            </form>
           )}
         </div>
       ) : (
