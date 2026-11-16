@@ -1,4 +1,5 @@
 import api from "../api/axios";
+import type { ProductReviewsResponse, Review } from "../api/reviewService";
 
 
 export const products = async (
@@ -177,19 +178,56 @@ export const productDetailsLoader = async ({
 
     const product = productResponse.data.product;
 
-    // Get related products from backend
-    const relatedProductsResponse = await api.get(
-      `/products/${productId}/related`
-    );
+    // Get related products and reviews from backend
+    const [relatedProductsResponse, reviewsResult] = await Promise.all([
+      api.get(`/products/${productId}/related`),
+      api.get<ProductReviewsResponse>(`/reviews/product/${productId}`).catch((error: any) => {
+        console.error(
+          "Get Product Reviews Error:",
+          error.response?.data?.message || error.message
+        );
+        return {
+          data: {
+            success: false,
+            count: 0,
+            reviews: [],
+            averageRating: 0,
+          } satisfies ProductReviewsResponse,
+        };
+      }),
+    ]);
 
     const relatedProducts =
       relatedProductsResponse.data.success
         ? relatedProductsResponse.data.products
         : [];
 
+    let myReview: Review | null = null;
+    if (localStorage.getItem("accessToken")) {
+      try {
+        const myReviewsResponse = await api.get<{
+          success: boolean;
+          count: number;
+          reviews: Review[];
+        }>("/reviews/my");
+        myReview = myReviewsResponse.data.reviews.find((review) => {
+          const reviewProduct = review.product;
+          return (typeof reviewProduct === "string" ? reviewProduct : reviewProduct._id) === productId;
+        }) ?? null;
+      } catch (error: any) {
+        console.error(
+          "Get My Reviews Error:",
+          error.response?.data?.message || error.message
+        );
+      }
+    }
+
     return {
-      product,
-      relatedProducts,
+      product: Promise.resolve(product),
+      relatedProducts: Promise.resolve(relatedProducts),
+      reviews: reviewsResult.data.reviews,
+      averageRating: reviewsResult.data.averageRating,
+      myReview,
     };
   } catch (error: any) {
     console.error(

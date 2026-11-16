@@ -267,6 +267,60 @@ export const createOrderAction = async ({
     };
   }
 };
+
+// Product review actions
+export const productReviewAction = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  const action = formData.get("_action");
+  const productId = formData.get("productId");
+  const reviewId = formData.get("reviewId");
+
+  try {
+    const reviewActions = {
+      createReview: () => api.post("/reviews", {
+        productId,
+        rating: Number(formData.get("rating")),
+        comment: String(formData.get("comment") ?? "").trim(),
+      }),
+      updateReview: () => {
+        if (typeof reviewId !== "string") {
+          throw new Error("Review ID is required");
+        }
+
+        return api.put(`/reviews/${reviewId}`, {
+          rating: Number(formData.get("rating")),
+          comment: String(formData.get("comment") ?? "").trim(),
+        });
+      },
+      deleteReview: () => {
+        if (typeof reviewId !== "string") {
+          throw new Error("Review ID is required");
+        }
+
+        return api.delete(`/reviews/${reviewId}`);
+      },
+    };
+
+    const executeReviewAction =
+      typeof action === "string"
+        ? reviewActions[action as keyof typeof reviewActions]
+        : undefined;
+
+    if (!executeReviewAction) {
+      return { success: false, message: "Invalid review action" };
+    }
+
+    const response = await executeReviewAction();
+    toast.success(response.data.message);
+    return { ...response.data, action };
+  } catch (error: any) {
+    const message =
+      error.response?.data?.message || error.message || "Unable to save review";
+    toast.error(message);
+    return { success: false, message, action };
+  }
+};
+
 //address action
 
 

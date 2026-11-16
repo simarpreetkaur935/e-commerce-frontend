@@ -41,6 +41,7 @@ import {
 // Actions
 import {
   createOrderAction,
+  productReviewAction,
 } from "../utils/Actions";
 
 // Authentication routes
@@ -70,6 +71,7 @@ const routes = createBrowserRouter([
         path: "products/:id",
         Component: ProductDetails,
         loader: productDetailsLoader,
+        action: productReviewAction,
       },
 
       // CATEGORIES

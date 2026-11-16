@@ -16,6 +16,8 @@ import api from "../api/axios";
 import { toast } from "react-toastify";
 
 import RelatedProducts from "../components/layout/RelatedProducts";
+import Review from "../components/layout/Review";
+import type { Review as ReviewData } from "../api/reviewService";
 
 interface Category {
   _id: string;
@@ -58,10 +60,13 @@ interface WishlistItem {
 }
 
 const ProductDetails = () => {
-  const { product, relatedProducts } =
+  const { product, relatedProducts, reviews, averageRating, myReview } =
     useLoaderData() as {
       product: Promise<Product>;
       relatedProducts: Promise<Product[]>;
+      reviews: ReviewData[];
+      averageRating: number;
+      myReview: Review | null;
     };
 
   return (
@@ -94,6 +99,9 @@ const ProductDetails = () => {
             <ProductContent
               product={productData}
               relatedProducts={relatedProducts}
+              reviews={reviews}
+              averageRating={averageRating}
+              myReview={myReview}
             />
           )}
         </Await>
@@ -106,11 +114,17 @@ const ProductDetails = () => {
 interface ProductContentProps {
   product: Product;
   relatedProducts: Promise<Product[]>;
+  reviews: ReviewData[];
+  averageRating: number;
+  myReview: Review | null;
 }
 
 const ProductContent = ({
   product,
   relatedProducts,
+  reviews,
+  averageRating,
+  myReview,
 }: ProductContentProps) => {
 
   // Navigate to another page
@@ -818,6 +832,13 @@ const ProductContent = ({
         </div>
 
       )}
+
+      <Review
+        productId={product._id}
+        reviews={reviews}
+        averageRating={averageRating}
+        myReview={myReview}
+      />
 
       {/* =================================================
           RELATED PRODUCTS
