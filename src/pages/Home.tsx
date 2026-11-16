@@ -36,6 +36,7 @@ interface Product {
 interface Cursor {
   cursorCreatedAt: string;
   cursorId: string;
+  cursorPrice?: number;
 }
 
 interface Pagination {
@@ -198,6 +199,9 @@ const Home = () => {
                       : {}),
                     cursorCreatedAt: cursor.cursorCreatedAt,
                     cursorId: cursor.cursorId,
+                    ...(cursor.cursorPrice !== undefined
+                      ? { cursorPrice: cursor.cursorPrice }
+                      : {}),
                   },
                 });
 

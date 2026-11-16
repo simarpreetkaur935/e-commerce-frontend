@@ -1,5 +1,8 @@
 import api from "../api/axios";
-import type { ProductReviewsResponse, Review } from "../api/reviewService";
+import type {
+  ProductReviewsResponse,
+  ReviewData,
+} from "../components/layout/Review";
 
 
 export const products = async (
@@ -202,7 +205,7 @@ export const productDetailsLoader = async ({
         ? relatedProductsResponse.data.products
         : [];
 
-    let myReview: Review | null = null;
+    let myReview: ReviewData | null = null;
     if (localStorage.getItem("accessToken")) {
       try {
         const myReviewsResponse = await api.get<{

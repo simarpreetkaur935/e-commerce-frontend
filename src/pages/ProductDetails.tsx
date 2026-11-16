@@ -17,7 +17,7 @@ import { toast } from "react-toastify";
 
 import RelatedProducts from "../components/layout/RelatedProducts";
 import Review from "../components/layout/Review";
-import type { Review as ReviewData } from "../api/reviewService";
+import type { ReviewData } from "../components/layout/Review";
 
 interface Category {
   _id: string;
