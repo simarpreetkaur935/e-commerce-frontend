@@ -23,7 +23,6 @@ export const registerAction = async ({ request }: ActionFunctionArgs) => {
 
 export const loginAction = async ({ request }: ActionFunctionArgs) => {
   const data = await request.formData();
-
   const payload = Object.fromEntries(data);
 
   try {
@@ -34,25 +33,27 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
       response.data.accessToken
     );
 
-    const userRole = String(
-      response.data.user?.role ?? response.data.role ?? ""
-    ).trim().toLowerCase();
-    if (userRole === "seller") {
-      toast.info("Seller dashboard coming soon!");
-      // Stay on the login route until a seller destination exists.
-      return null;
-    }
+    const roles =
+      response.data.user?.rolesWithPermissions ||
+      response.data.user?.roles ||
+      [];
 
-    if (userRole === "customer") {
-      toast.success(response.data.message);
-      return redirect("/");
-    }
+    const isSeller = Array.isArray(roles)
+      ? roles.some((role: any) =>
+          typeof role === "string"
+            ? role === "seller"
+            : role.name === "seller"
+        )
+      : roles === "seller";
 
-    // Preserve the customer homepage flow if the API omits the role field.
     toast.success(response.data.message);
+
+    if (isSeller) {
+      return redirect("/seller");
+    }
+
     return redirect("/");
 
-   
   } catch (error: any) {
     toast.error(
       error.response?.data?.message || "Something went wrong!"
