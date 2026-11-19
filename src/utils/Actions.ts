@@ -7,11 +7,8 @@ export const registerAction = async ({ request }: ActionFunctionArgs) => {
   const data = await request.formData();
 
   const payload = Object.fromEntries(data);
-  const isSellerRegistration = new URL(request.url).pathname === "/register-seller";
   try {
-    const response = await api.post("/auth/register", payload, {
-      ...(isSellerRegistration ? { params: { type: "seller" } } : {}),
-    });
+    const response = await api.post("/auth/register", payload);
 
     toast.success(response.data.message);
     return redirect("/login");

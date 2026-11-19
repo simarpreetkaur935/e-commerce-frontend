@@ -144,7 +144,7 @@ const Login = () => {
 
         <div className="space-y-3">
           <Link
-            to="/register-seller"
+            to="/register?type=seller"
             className="flex items-center justify-between rounded-lg border border-slate-300 px-4 py-3 transition hover:border-blue-500 hover:bg-blue-50"
           >
             <div>
