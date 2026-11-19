@@ -34,9 +34,12 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
       response.data.accessToken
     );
 
-    const userRole = String(response.data.user?.role ?? response.data.role ?? "").toLowerCase();
+    const userRole = String(
+      response.data.user?.role ?? response.data.role ?? ""
+    ).trim().toLowerCase();
     if (userRole === "seller") {
       toast.info("Seller dashboard coming soon!");
+      // Stay on the login route until a seller destination exists.
       return null;
     }
 
@@ -45,7 +48,9 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
       return redirect("/");
     }
 
-    return null;
+    // Preserve the customer homepage flow if the API omits the role field.
+    toast.success(response.data.message);
+    return redirect("/");
 
    
   } catch (error: any) {
