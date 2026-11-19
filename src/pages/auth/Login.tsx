@@ -127,7 +127,7 @@ const Login = () => {
 
           <Link
             to="/register"
-            className="block w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-center font-semibold text-white shadow-md shadow-blue-600/20 transition hover:-translate-y-0.5 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-blue-200"
+            className="block w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-center font-semibold text-white shadow-sm transition hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
           >
             Create an Account
           </Link>
@@ -143,21 +143,6 @@ const Login = () => {
         </div>
 
         <div className="space-y-3">
-          <Link
-            to="/register"
-            className="flex items-center justify-between rounded-lg border border-slate-300 px-4 py-3 transition hover:border-blue-500 hover:bg-blue-50"
-          >
-            <div>
-              <p className="text-sm font-semibold text-slate-800">
-                Create an Account
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Register as a customer
-              </p>
-            </div>
-            <span className="text-blue-600">→</span>
-          </Link>
-
           <Link
             to="/register-seller"
             className="flex items-center justify-between rounded-lg border border-slate-300 px-4 py-3 transition hover:border-blue-500 hover:bg-blue-50"
