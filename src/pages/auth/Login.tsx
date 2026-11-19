@@ -30,13 +30,13 @@ const Login = () => {
 
   return (
     <div
-      className={` " test min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center px-4 py-10"`}
+      className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50 px-4 py-8 sm:py-12"
     >
       {/* =========================
           OUTER CARD WRAPPER
       ========================= */}
 
-      <div className="w-full max-w-md">
+      <div className="relative w-full max-w-md">
         {/* =========================
             LOGIN CARD
         ========================= */}
@@ -47,7 +47,7 @@ const Login = () => {
             bg-white
             rounded-[28px]
             border border-white
-            p-7 sm:p-9
+            p-6 sm:p-9
 
             shadow-[0_10px_25px_rgba(15,23,42,0.06),0_25px_60px_rgba(37,99,235,0.10)]
 
@@ -122,7 +122,7 @@ const Login = () => {
               WELCOME BACK
             </div>
 
-            <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
               Sign in to your account
             </h2>
 
@@ -305,7 +305,7 @@ const Login = () => {
                 REMEMBER + FORGOT
             ========================= */}
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -406,26 +406,22 @@ const Login = () => {
               REGISTER BUTTON
           ========================= */}
 
-          <Link
-            to="/register"
-            className="
-              w-full
-              border
-              border-gray-300
-              hover:border-blue-500
-              hover:bg-blue-50
-              text-gray-800
-              py-3.5
-              rounded-xl
-              font-semibold
-              text-center
-              transition-all
-              duration-200
-              block
-            "
-          >
-            Create an Account
-          </Link>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link
+              to="/register"
+              className="group block rounded-xl border border-blue-200 bg-blue-50/70 px-4 py-3.5 text-center transition-all duration-200 hover:border-blue-400 hover:bg-blue-100 focus:outline-none focus:ring-4 focus:ring-blue-100"
+            >
+              <span className="block text-sm font-semibold text-blue-800">Create an Account</span>
+              <span className="mt-1 block text-xs text-blue-700/80">For customers</span>
+            </Link>
+            <Link
+              to="/register-seller"
+              className="group block rounded-xl border border-indigo-200 bg-indigo-50/70 px-4 py-3.5 text-center transition-all duration-200 hover:border-indigo-400 hover:bg-indigo-100 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+            >
+              <span className="block text-sm font-semibold text-indigo-800">Register as a Seller</span>
+              <span className="mt-1 block text-xs text-indigo-700/80">For sellers</span>
+            </Link>
+          </div>
 
           {/* =========================
               FOOTER
