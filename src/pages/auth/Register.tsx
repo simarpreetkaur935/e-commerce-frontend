@@ -30,7 +30,9 @@ const Register = () => {
 
   const submit = useSubmit();
   const location = useLocation();
-  const isSellerRegistration = new URLSearchParams(location.search).get("type") === "seller";
+  const isSellerRegistration =
+    location.pathname === "/register-seller" ||
+    new URLSearchParams(location.search).get("type") === "seller";
 
   // =========================
   // PASSWORD VALIDATION
@@ -77,7 +79,7 @@ const Register = () => {
 
     submit(data, {
       method: "POST",
-      action: isSellerRegistration ? "/register?type=seller" : "/register",
+      action: location.pathname,
     });
   };
 

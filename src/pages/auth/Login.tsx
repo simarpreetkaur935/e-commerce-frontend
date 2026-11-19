@@ -125,12 +125,12 @@ const Login = () => {
             </Link>
           </div>
 
-          <Link
-            to="/register"
-            className="block w-full rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 py-3 text-center font-semibold text-white shadow-sm transition hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          <button
+            type="submit"
+            className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3.5 font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:from-blue-700 hover:to-indigo-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-blue-100"
           >
-            Create an Account
-          </Link>
+            Sign In
+          </button>
         </form>
 
         {/* Registration */}
@@ -144,18 +144,29 @@ const Login = () => {
 
         <div className="space-y-3">
           <Link
-            to="/register?type=seller"
-            className="flex items-center justify-between rounded-lg border border-slate-300 px-4 py-3 transition hover:border-blue-500 hover:bg-blue-50"
+            to="/register"
+            className="flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50/50 px-4 py-3 transition hover:border-blue-400 hover:bg-blue-50 focus:outline-none focus:ring-4 focus:ring-blue-100"
+          >
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Create an Account</p>
+              <p className="mt-1 text-xs text-slate-500">For customers</p>
+            </div>
+            <span className="text-blue-600" aria-hidden="true">→</span>
+          </Link>
+
+          <Link
+            to="/register-seller"
+            className="flex items-center justify-between rounded-xl border border-indigo-200 bg-indigo-50/50 px-4 py-3 transition hover:border-indigo-400 hover:bg-indigo-50 focus:outline-none focus:ring-4 focus:ring-indigo-100"
           >
             <div>
               <p className="text-sm font-semibold text-slate-800">
                 Register as a Seller
               </p>
               <p className="mt-1 text-xs text-slate-500">
-                Start selling with MyStore
+                For sellers
               </p>
             </div>
-            <span className="text-blue-600">→</span>
+            <span className="text-indigo-600" aria-hidden="true">→</span>
           </Link>
         </div>
 

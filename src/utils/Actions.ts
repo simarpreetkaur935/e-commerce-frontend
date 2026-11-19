@@ -34,9 +34,14 @@ export const loginAction = async ({ request }: ActionFunctionArgs) => {
       response.data.accessToken
     );
 
+    const userRole = response.data.user?.role ?? response.data.role;
+    if (userRole?.toLowerCase() === "seller") {
+      toast.info("Seller dashboard coming soon!");
+      return null;
+    }
+
     toast.success(response.data.message);
-    console.log("login successful");
-     return redirect("/");
+    return redirect("/");
 
    
   } catch (error: any) {
