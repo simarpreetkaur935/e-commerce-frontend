@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import {
   Link,
+  useLocation,
   useSubmit,
 } from "react-router-dom";
 
@@ -28,6 +29,8 @@ const Register = () => {
     useState(false);
 
   const submit = useSubmit();
+  const location = useLocation();
+  const isSellerRegistration = location.pathname === "/register-seller";
 
   // =========================
   // PASSWORD VALIDATION
@@ -71,14 +74,9 @@ const Register = () => {
       confirmPassword,
     };
 
-    console.log(
-      "FORM DATA:",
-      data
-    );
-
     submit(data, {
       method: "POST",
-      action: "/register",
+      action: location.pathname,
     });
   };
 
@@ -219,7 +217,7 @@ const Register = () => {
                 "
               />
 
-              JOIN MYSTORE
+              {isSellerRegistration ? "SELL WITH MYSTORE" : "JOIN MYSTORE"}
             </span>
 
           </div>
@@ -240,7 +238,7 @@ const Register = () => {
                 text-slate-900
               "
             >
-              Create your account
+              {isSellerRegistration ? "Create your seller account" : "Create your account"}
             </h2>
 
             <p
@@ -250,7 +248,9 @@ const Register = () => {
                 mt-1.5
               "
             >
-              Join MYSTORE and start shopping.
+              {isSellerRegistration
+                ? "Set up your seller profile and start growing your business."
+                : "Join MYSTORE and start shopping."}
             </p>
 
           </div>

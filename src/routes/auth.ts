@@ -5,6 +5,7 @@ import forgetPassword from "../pages/auth/forgetPassword";
 
 const authRoutes = [
   { path: "/register", Component: Register, action: registerAction },
+  { path: "/register-seller", Component: Register, action: registerAction },
   { path: "/login", Component: Login, action: loginAction },
   {path: "/forgot-password",Component: forgetPassword, action:   forgotPasswordPageAction,},
 

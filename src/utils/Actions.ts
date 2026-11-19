@@ -7,14 +7,15 @@ export const registerAction = async ({ request }: ActionFunctionArgs) => {
   const data = await request.formData();
 
   const payload = Object.fromEntries(data);
+  const registrationEndpoint = new URL(request.url).pathname === "/register-seller"
+    ? "/auth/register-seller"
+    : "/auth/register";
 
   try {
-    const response = await api.post("/auth/register", payload);
+    const response = await api.post(registrationEndpoint, payload);
 
     toast.success(response.data.message);
-     return redirect("/login");
-
-    return response.data;
+    return redirect("/login");
   } catch (error: any) {
     toast.error(
       error.response?.data?.message || "Something went wrong!"
